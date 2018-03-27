@@ -1,0 +1,50 @@
+/dts-v1/;
+
+#include <nxp/nxp_kw41z.dtsi>
+
+/ {
+	model = "blik AKITA Gen2 board";
+	compatible = "nxp,kw41z", "nxp,mkw41z4";
+
+	aliases {
+		adc_0 = &adc0;
+		lpuart_0 = &lpuart0;
+		pinmux_a = &pinmux_a;
+		pinmux_b = &pinmux_b;
+		pinmux_c = &pinmux_c;
+		gpio_a = &gpioa;
+		gpio_b = &gpiob;
+		gpio_c = &gpioc;
+		i2c_1 = &i2c1;
+        spi_0 = &spi0;
+	};
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,console = &lpuart0;
+	};
+};
+
+&adc0 {
+	status = "ok";
+};
+
+&i2c1 {
+	status = "ok";
+
+	lis3dh@0f {
+		compatible = "st,lis3dh";
+		reg = <0x0f>;
+		label = "LIS3DH";
+	};
+};
+
+&spi0 {
+    status = "ok";
+};
+
+&lpuart0 {
+	status = "ok";
+	current-speed = <115200>;
+};

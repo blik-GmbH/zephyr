@@ -1,0 +1,12 @@
+# Kconfig - AKITA-GEN2 board
+#
+# Copyright (c) 2018, blik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+config BOARD_AKITA_GEN2
+	bool "blik AKITA Gen2"
+	depends on SOC_SERIES_KINETIS_KWX
+	select SOC_PART_NUMBER_MKW41Z512VHT4
+	select HAS_DTS_I2C_DEVICE
