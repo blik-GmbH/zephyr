@@ -40,6 +40,14 @@ static int akita_gen2_devboard_pinmux_init(struct device *dev)
 					| PORT_PCR_PS_MASK);
 #endif
 
+#ifdef CONFIG_SPI_0
+	/* SPI0 MISO, MOSI, SCK, CS0, CS1 */
+	pinmux_pin_set(portc, 18, PORT_PCR_MUX(kPORT_MuxAlt2));
+	pinmux_pin_set(portc, 17, PORT_PCR_MUX(kPORT_MuxAlt2));
+	pinmux_pin_set(portc, 16, PORT_PCR_MUX(kPORT_MuxAlt2));
+	pinmux_pin_set(portc, 19, PORT_PCR_MUX(kPORT_MuxAlt2));
+#endif
+
 #if CONFIG_ADC_0
 	/* ADC0_SE3 */
 	pinmux_pin_set(portb,  2, PORT_PCR_MUX(kPORT_PinDisabledOrAnalog));
