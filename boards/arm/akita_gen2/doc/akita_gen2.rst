@@ -1,45 +1,29 @@
 .. _frdm_kw41z:
 
-NXP FRDM-KW41Z
-##############
+blik AKITA Gen2
+###############
 
 Overview
 ********
 
-The FRDM-KW41Z is a development kit enabled by the Kinetis |reg| W series
+The AKITA Gen2 is a sensornode enabled by the Kinetis |reg| W series
 KW41Z/31Z/21Z (KW41Z) family built on ARM |reg| Cortex |reg|-M0+ processor with
 integrated 2.4 GHz transceiver supporting Bluetooth |reg| Smart/Bluetooth
 |reg| Low Energy
 (BLE) v4.2, Generic FSK, IEEE |reg| 802.15.4 and Thread.
-
-The FRDM-KW41Z kit contains two Freedom boards that can be used as a
-development board or a shield to connect to a host processor. The FRDM-KW41Z is
-form-factor compatible with the Arduino |trade| R3 pin layout for more expansion
-options.
-
-The FRDM-KW41Z highly-sensitive, optimized 2.4 GHz radio features a PCB
-F-antenna which can be bypassed to test via SMA connection, multiple power
-supply options, push/capacitive touch buttons, switches, LEDs and integrated
-sensors.
-
-.. image:: frdm_kw41z.jpg
-   :width: 720px
-   :align: center
-   :alt: FRDM-KW41Z
+It also carries a LIS3DHTR accelerometer, W25Q16 flash memory and is powered
+by a CR2477 coincell. The 2.4 GHz radio features a PCB F-antenna.
 
 Hardware
 ********
 
-- Can be configured as Host or Shield for connection to Host Processor
-- Supports all DC-DC configurations (Buck, Boost, Bypass)
+- DC-DC configured to Buck mode
 - PCB inverted F-type antenna
-- SMA RF Connector
-- RF regulatory certified
-- Serial Flash for OTA firmware upgrades
-- On board NXP FXOS8700CQ digital sensor, 3D Accelerometer ( |plusminus| 2g/
-  |plusminus| 4g/ |plusminus| 8g) + 3D
-  Magnetometer
-- OpenSDA and JTAG debug
+- SPI Flash for OTA firmware upgrades
+- On board ST LIS3DH digital sensor, 3D Accelerometer ( |plusminus| 2g/
+  |plusminus| 4g/ |plusminus| 8g)
+- Testpoints for USART
+- SWD debug and programming port
 
 For more information about the KW41Z SoC and FRDM-KW41Z board:
 
@@ -53,7 +37,7 @@ For more information about the KW41Z SoC and FRDM-KW41Z board:
 Supported Features
 ==================
 
-The frdm_kw41z board configuration supports the following hardware features:
+The akita_gen2 board configuration supports the following hardware features:
 
 +-----------+------------+-------------------------------------+
 | Interface | Controller | Driver/Component                    |
@@ -68,6 +52,8 @@ The frdm_kw41z board configuration supports the following hardware features:
 +-----------+------------+-------------------------------------+
 | I2C       | on-chip    | i2c                                 |
 +-----------+------------+-------------------------------------+
+| SPI       | on-chip    | spi                                 |
++-----------+------------+-------------------------------------+
 | ADC       | on-chip    | adc                                 |
 +-----------+------------+-------------------------------------+
 | UART      | on-chip    | serial port-polling;                |
@@ -75,45 +61,15 @@ The frdm_kw41z board configuration supports the following hardware features:
 +-----------+------------+-------------------------------------+
 | FLASH     | on-chip    | soc flash                           |
 +-----------+------------+-------------------------------------+
-| SENSOR    | off-chip   | fxos8700 polling:                   |
-|           |            | fxos8700 trigger                    |
+| SENSOR    | off-chip   | lis3dhtr polling:                   |
+|           |            | lis3dhtr trigger                    |
 +-----------+------------+-------------------------------------+
 
 The default configuration can be found in the defconfig file:
 
-	``boards/arm/frdm_kw41z/frdm_kw41z_defconfig``
+	``boards/arm/akita_gen2/akita_gen2_defconfig``
 
 Other hardware features are not currently supported by the port.
-
-Connections and IOs
-===================
-
-The KW41Z SoC has three pairs of pinmux/gpio controllers, but only two are
-currently enabled (PORTA/GPIOA and PORTC/GPIOC) for the FRDM-KW41Z board.
-
-+-------+-------------+---------------------------+
-| Name  | Function    | Usage                     |
-+=======+=============+===========================+
-| PTC1  | GPIO        | Red LED / FXOS8700 INT1   |
-+-------+-------------+---------------------------+
-| PTA19 | GPIO        | Green LED                 |
-+-------+-------------+---------------------------+
-| PTA18 | GPIO        | Blue LED                  |
-+-------+-------------+---------------------------+
-| PTB2  | ADC         | ADC0 channel 3            |
-+-------+-------------+---------------------------+
-| PTC2  | I2C1_SCL    | I2C / FXOS8700            |
-+-------+-------------+---------------------------+
-| PTC3  | I2C1_SDA    | I2C / FXOS8700            |
-+-------+-------------+---------------------------+
-| PTC4  | GPIO        | SW3                       |
-+-------+-------------+---------------------------+
-| PTC5  | GPIO        | SW4                       |
-+-------+-------------+---------------------------+
-| PTC6  | LPUART0_RX  | UART Console              |
-+-------+-------------+---------------------------+
-| PTC7  | LPUART0_TX  | UART Console              |
-+-------+-------------+---------------------------+
 
 System Clock
 ============
@@ -125,54 +81,6 @@ Serial Port
 ===========
 
 The KW41Z SoC has one UART, which is used for the console.
-
-Programming and Debugging
-*************************
-
-The FRDM-KW41Z includes the :ref:`nxp_opensda` serial and debug adapter built
-into the board to provide debugging, flash programming, and serial
-communication over USB.
-
-To use the pyOCD tools with OpenSDA, follow the instructions in the
-:ref:`nxp_opensda_pyocd` page using the `DAPLink FRDM-KW41Z Firmware`_. The
-pyOCD tools are not the default for this board, therefore it is necessary to
-set ``OPENSDA_FW=daplink`` explicitly when using the default flash and debug
-mechanisms.
-
-.. note::
-   pyOCD added support for KW41Z after support for this board was added to
-   Zephyr, so you may need to build pyOCD from source based on the current
-   master branch (f21d43d).
-
-To use the Segger J-Link tools with OpenSDA, follow the instructions in the
-:ref:`nxp_opensda_jlink` page using the `Segger J-Link OpenSDA V2.1 Firmware`_.
-The Segger J-Link tools are the default for this board, therefore it is not
-necessary to set ``OPENSDA_FW=jlink`` explicitly in the environment before
-programming and debugging.
-
-With these mechanisms, applications for the ``frdm_kw41z`` board
-configuration can be built and debugged in the usual way (see
-:ref:`build_an_application` and :ref:`application_run` for more
-details).
-
-Flashing
-========
-
-The Segger J-Link firmware does not support command line flashing, therefore
-the usual ``flash`` build system target is not supported.
-
-Debugging
-=========
-
-This example uses the :ref:`hello_world` sample with the
-:ref:`nxp_opensda_jlink` tools. Run the following to build
-your Zephyr application, invoke the J-Link GDB server, attach a GDB client, and
-program your Zephyr application to flash. It will leave you at a gdb prompt.
-
-.. zephyr-app-commands::
-   :zephyr-app: samples/hello_world
-   :board: frdm_kw41z
-   :goals: debug
 
 .. _FRDM-KW41Z Website:
    http://www.nxp.com/products/microcontrollers-and-processors/more-processors/application-specific-mcus-mpus/bluetooth-low-energy-ble/nxp-freedom-development-kit-for-kinetis-kw41z-31z-21z-mcus:FRDM-KW41Z
