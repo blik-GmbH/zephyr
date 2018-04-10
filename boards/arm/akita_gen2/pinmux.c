@@ -26,7 +26,7 @@ static int akita_gen2_pinmux_init(struct device *dev)
 	//pinmux_pin_set(porta,  2, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
     /* LLWU */
-	pinmux_pin_set(porta, 16, PORT_PCR_MUX(kPORT_MuxAlt1));
+	pinmux_pin_set(porta, 16, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
     /* GPIO */
 	pinmux_pin_set(porta, 17, PORT_PCR_MUX(kPORT_MuxAsGpio));
