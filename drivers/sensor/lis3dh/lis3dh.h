@@ -136,6 +136,7 @@ struct lis3dh_data {
 };
 
 int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan);
+int lis3dh_sample_fetch_accel(struct device *dev);
 
 #ifdef CONFIG_LIS3DH_TRIGGER
 int lis3dh_trigger_set(struct device *dev,
