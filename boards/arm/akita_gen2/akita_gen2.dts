@@ -16,7 +16,7 @@
 		gpio_b = &gpiob;
 		gpio_c = &gpioc;
 		i2c_1 = &i2c1;
-        spi_0 = &spi0;
+		spi_0 = &spi0;
 	};
 
 	chosen {
@@ -41,7 +41,7 @@
 };
 
 &spi0 {
-    status = "ok";
+	status = "ok";
 };
 
 &lpuart0 {

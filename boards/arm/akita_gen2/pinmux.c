@@ -16,56 +16,47 @@ static int akita_gen2_pinmux_init(struct device *dev)
 	struct device *portb = device_get_binding(CONFIG_PINMUX_MCUX_PORTB_NAME);
 	struct device *portc = device_get_binding(CONFIG_PINMUX_MCUX_PORTC_NAME);
 
-    /* SWDIO */
-	//pinmux_pin_set(porta,  0, PORT_PCR_MUX(kPORT_MuxAsGpio));
-
-    /* SWDCLK */
-	//pinmux_pin_set(porta,  1, PORT_PCR_MUX(kPORT_MuxAsGpio));
-
-    /* RST */
-	//pinmux_pin_set(porta,  2, PORT_PCR_MUX(kPORT_MuxAsGpio));
-
-    /* LLWU */
+	/* LLWU */
 	pinmux_pin_set(porta, 16, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
-    /* GPIO */
+	/* GPIO */
 	pinmux_pin_set(porta, 17, PORT_PCR_MUX(kPORT_MuxAsGpio));
 	pinmux_pin_set(porta, 18, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
-    #if CONFIG_ADC_0
-    /* ADC0 SE5 */
+#if CONFIG_ADC_0
+	/* ADC0 SE5 */
 	pinmux_pin_set(porta, 19, PORT_PCR_MUX(kPORT_PinDisabledOrAnalog));
-    #endif
+#endif
 
-    /* GPIO */
+	/* GPIO */
 	pinmux_pin_set(portb, 0, PORT_PCR_MUX(kPORT_MuxAsGpio));
 	pinmux_pin_set(portb, 1, PORT_PCR_MUX(kPORT_MuxAsGpio));
 	pinmux_pin_set(portb, 2, PORT_PCR_MUX(kPORT_MuxAsGpio));
 	pinmux_pin_set(portb, 3, PORT_PCR_MUX(kPORT_MuxAsGpio));
 	pinmux_pin_set(portb, 18, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
-    /* GPIO */
+	/* GPIO */
 	pinmux_pin_set(portc, 1, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
-    #if CONFIG_I2C_1
-    /* I2C1 SCL */
+#if CONFIG_I2C_1
+	/* I2C1 SCL */
 	pinmux_pin_set(portc, 2, PORT_PCR_MUX(kPORT_MuxAlt3));
-    /* I2C1 SDA */
+	/* I2C1 SDA */
 	pinmux_pin_set(portc, 3, PORT_PCR_MUX(kPORT_MuxAlt3));
-    #endif
+#endif
 
-    /* GPIO */
+	/* GPIO */
 	pinmux_pin_set(portc, 4, PORT_PCR_MUX(kPORT_MuxAsGpio));
 	pinmux_pin_set(portc, 5, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
-    #ifdef CONFIG_UART_MCUX_LPUART_0
+#ifdef CONFIG_UART_MCUX_LPUART_0
 	/* UART0 RX */
 	pinmux_pin_set(portc,  6, PORT_PCR_MUX(kPORT_MuxAlt4));
 	/* UART0 TX */
 	pinmux_pin_set(portc,  7, PORT_PCR_MUX(kPORT_MuxAlt4));
-    #endif
+#endif
 
-    #ifdef CONFIG_SPI_0
+#ifdef CONFIG_SPI_0
 	/* SPI0 SCK */
 	pinmux_pin_set(portc, 16, PORT_PCR_MUX(kPORT_MuxAlt2));
 	/* SPI0 SOUT */
@@ -74,7 +65,7 @@ static int akita_gen2_pinmux_init(struct device *dev)
 	pinmux_pin_set(portc, 18, PORT_PCR_MUX(kPORT_MuxAlt2));
 	/* SPI0 PCS0 */
 	pinmux_pin_set(portc, 19, PORT_PCR_MUX(kPORT_MuxAlt2));
-    #endif
+#endif
 
 	return 0;
 }

@@ -69,7 +69,7 @@ endif # ADC
 if SPI
 
 config SPI_0
-    def_bool y
+	def_bool y
 
 endif # SPI
 
