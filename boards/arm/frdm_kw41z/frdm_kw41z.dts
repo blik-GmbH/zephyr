@@ -17,6 +17,7 @@
 		gpio_c = &gpioc;
 		i2c_0 = &i2c0;
 		i2c_1 = &i2c1;
+		rtc_0 = &rtc0;
 	};
 
 	chosen {
