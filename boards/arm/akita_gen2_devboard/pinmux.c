@@ -25,6 +25,9 @@ static int akita_gen2_devboard_pinmux_init(struct device *dev)
 		device_get_binding(CONFIG_PINMUX_MCUX_PORTC_NAME);
 #endif
 
+	/* Accelerometer: Anymotion interrupt pin */
+	pinmux_pin_set(porta, 17, PORT_PCR_MUX(kPORT_MuxAsGpio));
+
 #if CONFIG_I2C_1
 	/* I2C1 SCL, SDA */
 	pinmux_pin_set(portc,  2, PORT_PCR_MUX(kPORT_MuxAlt3)
