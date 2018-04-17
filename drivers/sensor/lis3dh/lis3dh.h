@@ -143,6 +143,9 @@ int lis3dh_trigger_set(struct device *dev,
 int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan);
 
 int lis3dh_init_interrupt(struct device *dev);
+
+int lis3dh_acc_slope_config(struct device *dev, enum sensor_attribute attr,
+                            const struct sensor_value *val);
 #endif
 
 #define SYS_LOG_DOMAIN "LIS3DH"
