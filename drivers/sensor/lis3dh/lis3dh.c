@@ -157,6 +157,25 @@ int lis3dh_init(struct device *dev)
 		return -EIO;
 	}
 
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+	/* enable block data update (BDU) to use the auxiliary ADC */
+	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+			       LIS3DH_REG_CTRL4,
+			       LIS3DH_BDU_MASK | LIS3DH_FS_BITS) < 0) {
+		SYS_LOG_DBG("Failed to set BDU-bit.");
+		return -EIO;
+	}
+
+	/* connect temperature sensor to channel 3 of the ADC and
+	 * enable temperature measurement */
+	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+			       LIS3DH_TEMP_CFG_REG,
+			       LIS3DH_TEMP_EN_BIT | LIS3DH_ADC_EN_BIT) < 0) {
+		SYS_LOG_DBG("Failed to enable temperature measurements.");
+		return -EIO;
+	}
+#endif
+
 #ifdef CONFIG_LIS3DH_TRIGGER
 	if (lis3dh_init_interrupt(dev) < 0) {
 		SYS_LOG_DBG("Failed to initialize interrupts.");

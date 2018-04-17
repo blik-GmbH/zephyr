@@ -42,6 +42,13 @@ config LIS3DH_I2C_MASTER_DEV_NAME
 	  Specify the device name of the I2C master device to which LIS3DH is
 	  connected.
 
+config LIS3DH_ENABLE_TEMP
+    bool "Enable temperature"
+    depends on LIS3DH
+    default n
+    help
+      Enable/disable temperature
+
 choice
 	prompt "Trigger mode"
 	depends on LIS3DH
