@@ -115,10 +115,13 @@ struct lis3dh_data {
 
 #ifdef CONFIG_LIS3DH_TRIGGER
 	struct device *gpio;
-	struct gpio_callback gpio_cb;
+	struct gpio_callback gpio_int1_cb;
+	struct gpio_callback gpio_int2_cb;
 
-	struct sensor_trigger data_ready_trigger;
-	sensor_trigger_handler_t data_ready_handler;
+	sensor_trigger_handler_t handler_anymotion;
+	sensor_trigger_handler_t handler_drdy;
+	atomic_t trig_flags;
+	enum sensor_channel chan_drdy;
 
 #if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
 	K_THREAD_STACK_MEMBER(thread_stack, CONFIG_LIS3DH_THREAD_STACK_SIZE);
