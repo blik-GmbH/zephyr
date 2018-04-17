@@ -9,6 +9,14 @@
 #include <gpio.h>
 #include <device.h>
 #include <stdio.h>
+#include <adc.h>
+
+static void trigger_handler(struct device *dev, struct sensor_trigger *trigger)
+{
+	ARG_UNUSED(dev);
+	ARG_UNUSED(trigger);
+	printf("You moved it!");
+ }
 
 void main(void)
 {
@@ -17,10 +25,42 @@ void main(void)
 	struct device *dev;
 	int rc;
 
+	/* Take a minimal threshold to trigger easily */
+	struct sensor_value threshold = {
+		.val1 = 1,
+		.val2 = 0,
+	};
+	/* Trigger as soon as one measurment is above threshold */
+	struct sensor_value duration = {
+		.val1 = 2,
+		.val2 = 0,
+	};
+	struct sensor_trigger trig = {
+		.type = SENSOR_TRIG_DELTA,
+		.chan = SENSOR_CHAN_ACCEL_XYZ,
+	};
+
 	dev = device_get_binding(CONFIG_LIS3DH_NAME);
 	if (dev == NULL) {
 		printf("Could not get lis3dh device\n");
 	}
+
+	if (sensor_attr_set(dev, SENSOR_CHAN_ACCEL_XYZ,
+	        SENSOR_ATTR_SLOPE_TH, &threshold) < 0) {
+		printf("Could not set threshold\n");
+	}
+
+	if (sensor_attr_set(dev, SENSOR_CHAN_ACCEL_XYZ,
+	        SENSOR_ATTR_SLOPE_DUR, &duration) < 0) {
+		printf("Could not set duration.\n");
+	}
+
+	if (sensor_trigger_set(dev, &trig, trigger_handler) < 0) {
+		printf("Could not set trigger\n");
+	}
+
+	/* The first measurement isn't ready quite yet */
+	k_sleep(100);
 
 	while (1)
 	{
