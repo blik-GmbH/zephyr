@@ -37,7 +37,7 @@ static int akita_gen2_devboard_pinmux_init(struct device *dev)
 #endif
 
 #ifdef CONFIG_SPI_0
-	/* SPI0 MISO, MOSI, SCK, CS0, CS1 */
+	/* SPI0 MISO, MOSI, SCK, CS0 */
 	pinmux_pin_set(portc, 18, PORT_PCR_MUX(kPORT_MuxAlt2));
 	pinmux_pin_set(portc, 17, PORT_PCR_MUX(kPORT_MuxAlt2));
 	pinmux_pin_set(portc, 16, PORT_PCR_MUX(kPORT_MuxAlt2));
