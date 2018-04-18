@@ -1,0 +1,13 @@
+identifier: akita_gen2_devboard
+name: blik AKITA Gen2 devboard
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gccarmemb
+supported:
+  - ieee802154
+  - adc
+  - i2c
+  - spi
+  - gpio
