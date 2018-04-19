@@ -447,5 +447,5 @@ int lis3dh_init_interrupt(struct device *dev)
 
 	/* enable interrupt 2 on int2 line */
 	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
-				  LIS3DH_REG_CTRL6, LIS3DH_EN_INT2_INT2);
+	                          LIS3DH_REG_CTRL6, LIS3DH_EN_ANYM_INT2);
 }
