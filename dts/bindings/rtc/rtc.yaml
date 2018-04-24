@@ -1,3 +1,8 @@
+#
+# Copyright (c) 2018, blik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 ---
 title: RTC Base Structure
 id: rtc
@@ -17,6 +22,11 @@ properties:
       type: string
       category: required
       description: Human readable string describing the device (used by Zephyr for API name)
+      generation: define
+    interrupts:
+      type: array
+      category: required
+      description: required interrupts
       generation: define
     interrupt-names:
       type: stringlist

@@ -187,7 +187,7 @@ static struct mcux_rtc_data rtc_mcux_data_0;
 static void rtc_mcux_irq_config_0(struct device *dev);
 
 static struct mcux_rtc_config rtc_mcux_config_0 = {
-	.base = RTC,
+	.base = (RTC_Type *)CONFIG_RTC_MCUX_0_BASE_ADDRESS,
 	.irq_config_func = rtc_mcux_irq_config_0,
 };
 
