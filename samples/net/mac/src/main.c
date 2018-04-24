@@ -51,7 +51,20 @@ void read_and_print_mac()
 	printf("\n");
 }
 
+void read_and_print_uid()
+{
+	const uint32_t uidl = SIM->UIDL;
+	const uint32_t uidml = SIM->UIDML;
+	const uint32_t uidmh = SIM->UIDMH;
+
+	printf("UIDMH: " PRINTF_BINARY_PATTERN_INT32 "\n", PRINTF_BYTE_TO_BINARY_INT32(uidmh));
+	printf("UIDML: " PRINTF_BINARY_PATTERN_INT32 "\n", PRINTF_BYTE_TO_BINARY_INT32(uidml));
+	printf("UIDL:  " PRINTF_BINARY_PATTERN_INT32 "\n", PRINTF_BYTE_TO_BINARY_INT32(uidl));
+	printf("\n");
+}
+
 void main(void)
 {
 	read_and_print_mac();
+	read_and_print_uid();
 }
