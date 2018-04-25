@@ -102,7 +102,7 @@ void main(void)
 	//----------------------------------------------------------------------------
 
 	int ret = 0;
-	while (1) {
+	for (int i = 0; i < 10; i++) {
 		printk("adc_read ... ");
 		ret = adc_read(dev_adc, &table);
 		if (ret != 0) {
@@ -113,5 +113,44 @@ void main(void)
 		_print_hex(seq_buf[0], BUF_SIZE);
 		k_sleep(1000);
 	}
+
+	//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
+
+	sc = 0b00000000;
+	VREF->SC = sc;
+
+	sc = VREF->SC;
+	printk("VREF R: 0x%02x 0x%02x\n", trm, sc);
+
+	//----------------------------------------------------------------------------
+
+	tmp = ADC0->SC2;
+	printk("ADC0 SC2: 0x%08x\n", tmp);
+
+	tmp |= ADC_SC2_REFSEL(0b01);
+	ADC0->SC2 = tmp;
+
+	//----------------------------------------------------------------------------
+
+	tmp = DCDC->REG0;
+	printk("DCDC R0: 0x%02x\n", tmp);
+	tmp = (tmp & ~DCDC_REG0_DCDC_VBAT_DIV_CTRL_MASK) | DCDC_REG0_DCDC_VBAT_DIV_CTRL(0b10);
+	DCDC->REG0 = tmp;
+
+	//----------------------------------------------------------------------------
+
+	for (int i = 0; i < 10; i++) {
+		printk("adc_read ... ");
+		ret = adc_read(dev_adc, &table);
+		if (ret != 0) {
+			printk("error\n");
+			break;
+		}
+		printk("success\n");
+		_print_hex(seq_buf[0], BUF_SIZE);
+		k_sleep(1000);
+	}
+
 	adc_disable(dev_adc);
 }
