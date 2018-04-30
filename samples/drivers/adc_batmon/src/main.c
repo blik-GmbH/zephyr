@@ -44,8 +44,8 @@
 /*----------------------------------------------------------------------------*/
 
 // Set or clear to select one of the two voltage reference options.
-#define USE_INTERNAL_VREF   0
-#define USE_EXTERNAL_1P8V   1
+#define USE_INTERNAL_VREF   1
+#define USE_EXTERNAL_1P8V   0
 
 #define ADC_DEV_NAME        "ADC_0"
 
@@ -151,37 +151,17 @@ void main(void) {
         CLOCK_EnableClock(s_dcdcClocks[0]);
 
         // Read DCDC Register 0 and print it
-        int dcdc_r0 = DCDC->REG0;
+        uint32_t dcdc_r0 = DCDC->REG0;
         printk("DCDC R0: 0x%02x\n", dcdc_r0);
 
         // Set internal voltage divider to VBAT/4
         dcdc_r0 = (dcdc_r0 & ~DCDC_REG0_DCDC_VBAT_DIV_CTRL_MASK)
-                | DCDC_REG0_DCDC_VBAT_DIV_CTRL(0b11U);
+                | DCDC_REG0_DCDC_VBAT_DIV_CTRL(0x03U);
         DCDC->REG0 = dcdc_r0;
 
         // Read back register and print again
         dcdc_r0 = DCDC->REG0;
         printk("DCDC R0: 0x%02x\n", dcdc_r0);
-
-        //----------------------------------------------------------------------
-
-        // Read battery voltage forever
-        int ret = 0;
-        while(1) {
-            printk("adc_read ... ");
-            ret = adc_read(dev_adc, &table);
-            if (ret != 0) {
-                printk("error\n");
-                break;
-            }
-            printk("success\n");
-            _print_hex(adc_sample_buf, ADC_SAMPLE_BUF_SIZE * sizeof(adc_sample_buf[0]));
-            // Internal reference voltage is 1.195V if not set differently
-            // Voltage divider was set to VBAT/4
-            int millivolts = (int)((((int)(adc_sample_buf[0]) * 1000.0) / (1 << ADC_RESOLUTION)) * 1.195 * 4);
-            printk("Voltage: %d mV\n", millivolts);
-            k_sleep(1000);
-        }
     }
     else if(USE_EXTERNAL_1P8V)
     {
@@ -196,12 +176,12 @@ void main(void) {
         CLOCK_EnableClock(s_dcdcClocks[0]);
 
         // Read DCDC Register 0 and print it
-        int dcdc_r0 = DCDC->REG0;
+        uint32_t dcdc_r0 = DCDC->REG0;
         printk("DCDC R0: 0x%02x\n", dcdc_r0);
 
         // Set internal voltage divider to VBAT/2
         dcdc_r0 = (dcdc_r0 & ~DCDC_REG0_DCDC_VBAT_DIV_CTRL_MASK)
-                | DCDC_REG0_DCDC_VBAT_DIV_CTRL(0b10U);
+                | DCDC_REG0_DCDC_VBAT_DIV_CTRL(0x02U);
         DCDC->REG0 = dcdc_r0;
 
         // Read back register and print again
@@ -211,39 +191,51 @@ void main(void) {
         //----------------------------------------------------------------------
 
         // Read ADC0 SC2 register and print it
-        int adc0_sc2 = ADC0->SC2;
+        uint32_t adc0_sc2 = ADC0->SC2;
         printk("ADC0 SC2: 0x%08x\n", adc0_sc2);
 
         // Select VALT as ADC voltage reference, which is 1.8V DCDC output on
         // FRDM-KW41Z
-        adc0_sc2 |= ADC_SC2_REFSEL(0b01U);
+        adc0_sc2 = (adc0_sc2 & ~ADC_SC2_REFSEL_MASK) | ADC_SC2_REFSEL(0x01U);
         ADC0->SC2 = adc0_sc2;
 
         // Read back ADC0 SC2 register and print again
         adc0_sc2 = ADC0->SC2;
         printk("ADC0 SC2: 0x%08x\n", adc0_sc2);
+    }
 
-        //----------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
-        // Read battery voltage forever
-        int ret = 0;
-        while(1) {
-            printk("adc_read ... ");
-            ret = adc_read(dev_adc, &table);
-            if (ret != 0) {
-                printk("error\n");
-                break;
-            }
-            printk("success\n");
-            _print_hex(adc_sample_buf, ADC_SAMPLE_BUF_SIZE * sizeof(adc_sample_buf[0]));
+    // Read battery voltage forever
+    uint32_t ret = 0;
+    while(1) {
+        printk("adc_read ... ");
+        ret = adc_read(dev_adc, &table);
+        if (ret != 0) {
+            printk("error\n");
+            break;
+        }
+        printk("success\n");
+        _print_hex(adc_sample_buf, ADC_SAMPLE_BUF_SIZE * sizeof(adc_sample_buf[0]));
+        uint32_t millivolts;
+        if(USE_INTERNAL_VREF)
+        {
+            // Internal reference voltage is 1.195V if not set differently
+            // Voltage divider was set to VBAT/4
+            millivolts = (uint32_t)((((uint32_t)(adc_sample_buf[0]) * 1000.0) / (1 << ADC_RESOLUTION)) * 1.195 * 4);
+        }
+        else if(USE_EXTERNAL_1P8V)
+        {
             // External reference voltage routed from VDD_1P8OUT to VDDA is
             // 1.8V on FRDM-KW41Z.
             // Voltage divider was set to VBAT/2
-            int millivolts = (int)((((int)(adc_sample_buf[0]) * 1000.0) / (1 << ADC_RESOLUTION)) * 1.8 * 2);
-            printk("Voltage: %d mV\n", millivolts);
-            k_sleep(1000);
+            millivolts = (uint32_t)((((uint32_t)(adc_sample_buf[0]) * 1000.0) / (1 << ADC_RESOLUTION)) * 1.8 * 2);
         }
+        printk("Voltage: %d mV\n", millivolts);
+        k_sleep(1000);
     }
+
+    //--------------------------------------------------------------------------
 
     adc_disable(dev_adc);
 }
