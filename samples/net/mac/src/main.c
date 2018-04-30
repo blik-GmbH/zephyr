@@ -60,6 +60,23 @@ void read_and_print_uid()
 	printf("UIDMH: " PRINTF_BINARY_PATTERN_INT32 "\n", PRINTF_BYTE_TO_BINARY_INT32(uidmh));
 	printf("UIDML: " PRINTF_BINARY_PATTERN_INT32 "\n", PRINTF_BYTE_TO_BINARY_INT32(uidml));
 	printf("UIDL:  " PRINTF_BINARY_PATTERN_INT32 "\n", PRINTF_BYTE_TO_BINARY_INT32(uidl));
+	printf("UID: %02x:%02x:%02x:%02x:" \
+		"%02x:%02x:%02x:%02x:" \
+		"%02x:%02x:%02x:%02x",
+			((u8_t*)(&uidmh))[3],
+			((u8_t*)(&uidmh))[2],
+			((u8_t*)(&uidmh))[1],
+			((u8_t*)(&uidmh))[0],
+
+			((u8_t*)(&uidml))[3],
+			((u8_t*)(&uidml))[2],
+			((u8_t*)(&uidml))[1],
+			((u8_t*)(&uidml))[0],
+
+			((u8_t*)(&uidl))[3],
+			((u8_t*)(&uidl))[2],
+			((u8_t*)(&uidl))[1],
+			((u8_t*)(&uidl))[0]);
 	printf("\n");
 }
 
