@@ -34,7 +34,11 @@
  *  +----------------------------------------------------------+
  */
 
-#define W25QXXDV_RDID_VALUE  (0x00ef4015)
+#if CONFIG_SPI_FLASH_W25QXXXX_DEVICE_W25QXXDV
+#define W25QXXXX_RDID_VALUE  (0x00ef4015)
+#elif CONFIG_SPI_FLASH_W25QXXXX_DEVICE_W25QXXFW
+#define W25QXXXX_RDID_VALUE  (0x00ef6015)
+#endif
 #define W25QXXXX_MAX_LEN_REG_CMD      (6)
 #define W25QXXXX_OPCODE_LEN           (1)
 #define W25QXXXX_ADDRESS_WIDTH        (3)

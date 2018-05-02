@@ -48,6 +48,19 @@ config SPI_FLASH_W25QXXXX_SPI_NAME
 	depends on SPI_FLASH_W25QXXXX
 	default ""
 
+choice SPI_FLASH_W25QXXXX_DEVICE
+	bool
+	depends on SPI_FLASH_W25QXXXX
+	prompt "W25QXXXX SPI Flash Device"
+	config SPI_FLASH_W25QXXXX_DEVICE_W25QXXDV
+		bool "W25QXXDV"
+	config SPI_FLASH_W25QXXXX_DEVICE_W25QXXFW
+		bool "W25QXXFW"
+	help
+		The particular Flash device defined by the two-letter suffix in the
+		device name, e.g. W25Q16DV or W25Q16FW.
+endchoice
+
 config SPI_FLASH_W25QXXXX_DRV_NAME
 	string
 	prompt "W25QXXXX SPI flash driver name"
