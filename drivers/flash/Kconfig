@@ -36,60 +36,65 @@ config FLASH_PAGE_LAYOUT
 	help
 	  Enables API for retrieving the layout of flash memory pages.
 
-config SPI_FLASH_W25QXXDV
+config SPI_FLASH_W25QXXXX
 	bool
-	prompt "SPI NOR Flash Winbond W25QXXDV"
+	prompt "SPI NOR Flash Winbond W25QXXXX"
 	select FLASH_HAS_DRIVER_ENABLED
 	depends on SPI && FLASH
 
-config SPI_FLASH_W25QXXDV_SPI_NAME
+config SPI_FLASH_W25QXXXX_SPI_NAME
 	string
 	prompt "SPI controller device name"
-	depends on SPI_FLASH_W25QXXDV
+	depends on SPI_FLASH_W25QXXXX
 	default ""
 
-config SPI_FLASH_W25QXXDV_DRV_NAME
+config SPI_FLASH_W25QXXXX_DRV_NAME
 	string
-	prompt "SPI flash device name"
-	depends on SPI_FLASH_W25QXXDV
-	default "W25QXXDV"
+	prompt "W25QXXXX SPI flash driver name"
+	depends on SPI_FLASH_W25QXXXX
+	default "W25QXXXX"
+	help
+		This the name with that the driver is registered in
+		the kernel.
+		The name can be other modules and user software to
+		get the device binding to the Flash device.
 
-config SPI_FLASH_W25QXXDV_INIT_PRIORITY
+config SPI_FLASH_W25QXXXX_INIT_PRIORITY
 	int
-	depends on SPI_FLASH_W25QXXDV
+	depends on SPI_FLASH_W25QXXXX
 	default 80
 	help
 	  Device driver initialization priority.
 	  Device is connected to SPI bus, it has to
 	  be initialized after SPI driver.
 
-config SPI_FLASH_W25QXXDV_SPI_FREQ_0
+config SPI_FLASH_W25QXXXX_SPI_FREQ_0
 	int "SPI system frequency"
-	depends on SPI_FLASH_W25QXXDV
+	depends on SPI_FLASH_W25QXXXX
 	default 4
 	help
 	  This option sets the SPI controller's frequency. Beware this value
 	  depends on the SPI controller being used and also on the system
 	  clock.
 
-config	SPI_FLASH_W25QXXDV_SPI_SLAVE
+config	SPI_FLASH_W25QXXXX_SPI_SLAVE
 	int "SPI slave linked to SPI flash"
-	depends on SPI_FLASH_W25QXXDV
+	depends on SPI_FLASH_W25QXXXX
 	help
 	  This option sets the SPI slave number the SPI controller has to switch
 	  to when dealing with WinBond SPI flash chip.
 
-config SPI_FLASH_W25QXXDV_FLASH_SIZE
+config SPI_FLASH_W25QXXXX_FLASH_SIZE
 	int "Flash size in bytes"
-	depends on SPI_FLASH_W25QXXDV
+	depends on SPI_FLASH_W25QXXXX
 	default 2097152
 	help
 	  This is the flash capacity in bytes.
 
-config SPI_FLASH_W25QXXDV_MAX_DATA_LEN
+config SPI_FLASH_W25QXXXX_MAX_DATA_LEN
 	int
 	range 1 256
-	depends on SPI_FLASH_W25QXXDV
+	depends on SPI_FLASH_W25QXXXX
 	default 256
 	help
 	  Maximum transmit or receive data length in one user data frame.
