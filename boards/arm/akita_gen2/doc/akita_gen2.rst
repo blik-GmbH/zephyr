@@ -19,7 +19,7 @@ Hardware
 
 - DC-DC configured to Buck mode
 - PCB inverted F-type antenna
-- SPI Flash for OTA firmware upgrades
+- On-board W25Q16FW SPI Flash for OTA firmware upgrades
 - On board ST LIS3DH digital sensor, 3D Accelerometer ( |plusminus| 2g/
   |plusminus| 4g/ |plusminus| 8g)
 - Testpoints for USART
@@ -59,7 +59,7 @@ The akita_gen2 board configuration supports the following hardware features:
 | UART      | on-chip    | serial port-polling;                |
 |           |            | serial port-interrupt               |
 +-----------+------------+-------------------------------------+
-| FLASH     | on-chip    | soc flash                           |
+| FLASH     | off-chip   | spi_flash_w25qxxxx                  |
 +-----------+------------+-------------------------------------+
 | SENSOR    | off-chip   | lis3dhtr polling:                   |
 |           |            | lis3dhtr trigger                    |
