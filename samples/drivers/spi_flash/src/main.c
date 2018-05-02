@@ -20,17 +20,17 @@ void main(void)
 	struct device *flash_dev;
 	u8_t buf[TEST_DATA_LEN];
 
-	printf("\nW25QXXDV SPI flash testing\n");
+	printf("\nW25QXXXX SPI flash testing\n");
 	printf("==========================\n");
 
-	flash_dev = device_get_binding(CONFIG_SPI_FLASH_W25QXXDV_DRV_NAME);
+	flash_dev = device_get_binding(CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME);
 
 	if (!flash_dev) {
 		printf("SPI flash driver was not found!\n");
 		return;
 	}
 
-	/* Write protection needs to be disabled in w25qxxdv flash before
+	/* Write protection needs to be disabled in W25QXXXX flash before
 	 * each write or erase. This is because the flash component turns
 	 * on write protection automatically after completion of write and
 	 * erase operations.
