@@ -82,6 +82,7 @@ static int mcux_rtc_set_config(struct device *dev, struct rtc_config *cfg)
 		data->callback_data = dev;
 
 		RTC_StopTimer(config->base);
+		config->base->TPR = 0;
 		config->base->TSR = cfg->init_val;
 		RTC_StartTimer(config->base);
 		ret = mcux_rtc_set_alarm(dev, cfg->alarm_val);
