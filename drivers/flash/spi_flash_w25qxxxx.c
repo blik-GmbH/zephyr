@@ -220,7 +220,7 @@ static int spi_flash_wb_write_within_page(struct device *dev, off_t offset,
 
     // Exit if address range out of page bounds
     if (offset < 0 ||
-        ((offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > (W25QXXXX_PAGE_SIZE - 1)) {
+        ((offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > W25QXXXX_PAGE_SIZE) {
         return -ENOTSUP;
     }
 
@@ -264,6 +264,36 @@ static int spi_flash_wb_write_within_page(struct device *dev, off_t offset,
     return 0;
 }
 
+static int spi_flash_wb_write_protection_set(struct device *dev, bool enable)
+{
+    struct spi_flash_data *const driver_data = dev->driver_data;
+    u8_t buf = 0;
+
+    k_sem_take(&driver_data->sem, K_FOREVER);
+
+    if (spi_flash_wb_config(dev) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
+
+    wait_for_flash_idle(dev);
+
+    if (enable) {
+        buf = W25QXXXX_CMD_WRDI;
+    } else {
+        buf = W25QXXXX_CMD_WREN;
+    }
+
+    if (spi_flash_wb_reg_write(dev, &buf) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
+
+    k_sem_give(&driver_data->sem);
+
+    return 0;
+}
+
 /**
  * @brief Write to Flash memory
  *
@@ -292,12 +322,12 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
     // access into multiple SPI transactions until requested length is
     // satisfied.
     size_t transaction_len;
-    void *data_ptr = data;
+    off_t relative_offset = 0;
     while(len > 0)
     {
 
         // Align first write access to W25Q page boundaries
-        if(((offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > (W25QXXXX_PAGE_SIZE - 1))
+        if(((offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > W25QXXXX_PAGE_SIZE)
         {
             transaction_len = W25QXXXX_PAGE_SIZE -
                     (offset & (W25QXXXX_PAGE_SIZE - 1));
@@ -322,8 +352,8 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
         }
 
         // Write transaction
-        rc = spi_flash_wb_write_within_page(dev, offset, data_ptr,
-                transaction_len);
+        rc = spi_flash_wb_write_within_page(dev, offset,
+                (data + relative_offset), transaction_len);
         if(rc)
         {
             return rc;
@@ -332,40 +362,10 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
         // Update indices and pointers
         offset = offset + transaction_len;
         len = len - transaction_len;
-        data_ptr = data_ptr + transaction_len;
+        relative_offset = relative_offset + transaction_len;
     }
 
     return 0;
-}
-
-static int spi_flash_wb_write_protection_set(struct device *dev, bool enable)
-{
-	struct spi_flash_data *const driver_data = dev->driver_data;
-	u8_t buf = 0;
-
-	k_sem_take(&driver_data->sem, K_FOREVER);
-
-	if (spi_flash_wb_config(dev) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
-
-	wait_for_flash_idle(dev);
-
-	if (enable) {
-		buf = W25QXXXX_CMD_WRDI;
-	} else {
-		buf = W25QXXXX_CMD_WREN;
-	}
-
-	if (spi_flash_wb_reg_write(dev, &buf) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
-
-	k_sem_give(&driver_data->sem);
-
-	return 0;
 }
 
 static inline int spi_flash_wb_erase_internal(struct device *dev,
