@@ -1,5 +1,13 @@
 /*
- * Copyright (c) 2016 Intel Corporation.
+ * @file spi_flash_w25qxxxx.c
+ *
+ * @brief Driver implementation for Winbond W25Q series Flash devices.
+ *
+ * @copyright Apache License 2.0
+ * @copyright (c) 2016 Intel Corporation.
+ * @copyright (c) 2018 blik GmbH
+ *
+ * @author Alexander Preißner <alexander.preissner@blik.io>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,6 +21,22 @@
 #include "spi_flash_w25qxxxx_defs.h"
 #include "spi_flash_w25qxxxx.h"
 #include "flash_priv.h"
+
+
+/**
+ * @brief Flash Pages Layout Table Entry
+ *
+ * In the W25QXXXX Flash devices the minimum erasable unit is one sector, which
+ * is 16 W25QXXXX pages (term according to datasheet).
+ * A W25QXXXX page is 256 bytes in size.
+ * The number of Zephyr pages can be calculated by dividing the size of the
+ * entire Flash (in bytes) by the erasable sector size (in bytes).
+ */
+static const struct flash_pages_layout flash_w25qxxxx_pages_layout = {
+    .pages_count = CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE / W25QXXXX_SECTOR_SIZE,
+    .pages_size = W25QXXXX_SECTOR_SIZE,
+};
+
 
 static inline int spi_flash_wb_id(struct device *dev)
 {
@@ -340,14 +364,36 @@ static int spi_flash_wb_erase(struct device *dev, off_t offset, size_t size)
 	return ret;
 }
 
+/**
+ * @brief Creates Flash Pages Layout Table
+ *
+ * The Flash Pages Layout Table describes the layout of erasable pages within
+ * a Flash device.
+ * The information is used by file systems to determine formatting and when to
+ * erase what.
+ *
+ * @param dev Flash device struct
+ * @param layout Pointer to an array of #flash_pages_layout descriptor structs
+ * @param layout_size Pointer to a variable holding the size of the Pages
+ * Layout Table
+ */
+void spi_flash_wb_page_layout(struct device *dev,
+                       const struct flash_pages_layout **layout,
+                       size_t *layout_size)
+{
+    *layout = &flash_w25qxxxx_pages_layout;
+    *layout_size = 1;
+
+    return;
+}
+
 static const struct flash_driver_api spi_flash_api = {
 	.read = spi_flash_wb_read,
 	.write = spi_flash_wb_write,
 	.erase = spi_flash_wb_erase,
 	.write_protection = spi_flash_wb_write_protection_set,
 #if defined(CONFIG_FLASH_PAGE_LAYOUT)
-	.page_layout = (flash_api_pages_layout)
-		       flash_page_layout_not_implemented,
+	.page_layout = spi_flash_wb_page_layout,
 #endif
 	.write_block_size = 1,
 };
