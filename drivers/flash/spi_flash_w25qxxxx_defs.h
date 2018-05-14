@@ -57,6 +57,9 @@
 #define W25QXXXX_SECR_EFAIL_BIT  (0x1 << 6)
 #define W25QXXXX_SECR_PFAIL_BIT  (0x1 << 5)
 
+/* page size */
+#define W25QXXXX_PAGE_SIZE       (0x100)
+
 /* supported erase size */
 #define W25QXXXX_SECTOR_SIZE     (0x1000)
 #define W25QXXXX_BLOCK32K_SIZE   (0x8000)
