@@ -23,6 +23,22 @@ static struct nffs_area_desc nffs_selftest_area_descs[] = {
 	{ 0x000e0000, 128 * 1024 },
 	{ 0, 0 },
 };
+#elif CONFIG_BOARD_AKITA_GEN2_DEVBOARD
+static struct nffs_area_desc nffs_selftest_area_descs[] = {
+    { 0x00000000, 4096 },
+    { 0x00001000, 4096 },
+    { 0x00002000, 4096 },
+    { 0x00003000, 4096 },
+    { 0x00004000, 4096 },
+    { 0x00005000, 4096 },
+    { 0x00006000, 4096 },
+    { 0x00007000, 4096 },
+    { 0x00008000, 4096 },
+    { 0x00009000, 4096 },
+    { 0x0000a000, 4096 },
+    { 0x0000b000, 4096 },
+    { 0, 0 },
+};
 #else
 static struct nffs_area_desc nffs_selftest_area_descs[] = {
 	{ 0x00020000, 2 * 4096 },

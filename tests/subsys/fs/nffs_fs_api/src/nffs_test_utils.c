@@ -35,7 +35,12 @@
 /*
  * This should fit the largest area used in test (128K).
  */
+#if CONFIG_BOARD_AKITA_GEN2_DEVBOARD
+#define AREA_BUF_MAX_SIZE (24 * 1024)
+#else
 #define AREA_BUF_MAX_SIZE (128 * 1024)
+#endif
+
 static u8_t area_buf[AREA_BUF_MAX_SIZE];
 
 #define NFFS_TEST_BUF_SIZE (24 * 1024)

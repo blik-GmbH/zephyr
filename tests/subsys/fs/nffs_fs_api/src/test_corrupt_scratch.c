@@ -34,11 +34,19 @@ void test_corrupt_scratch(void)
 	int scratch_id;
 	int rc;
 
+#if CONFIG_BOARD_AKITA_GEN2_DEVBOARD
 	static const struct nffs_area_desc area_descs_two[] = {
-		{ 0x00020000, 128 * 1024 },
-		{ 0x00040000, 128 * 1024 },
-		{ 0, 0 },
-	};
+        { 0x00001000, 4096 },
+        { 0x00002000, 4096 },
+        { 0, 0 },
+    };
+#else
+	static const struct nffs_area_desc area_descs_two[] = {
+        { 0x00020000, 128 * 1024 },
+        { 0x00040000, 128 * 1024 },
+        { 0, 0 },
+    };
+#endif
 	nffs_current_area_descs = (struct nffs_area_desc *)area_descs_two;
 
 	/*** Setup. */
