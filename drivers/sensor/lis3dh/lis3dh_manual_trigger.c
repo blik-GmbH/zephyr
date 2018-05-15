@@ -427,9 +427,9 @@ int lis3dh_init_interrupt(struct device *dev)
 		return status;
 	}
 
-	/* any motion int2 gpio configuration */
+	/* Setting the trigger will later configure the pin for interrupts */
 	status = gpio_pin_configure(lis3dh->gpio, CONFIG_LIS3DH_INT2_GPIO_PIN,
-				    LIS3DH_INT2_CFG);
+				    LIS3DH_DIS_INT2_CFG);
 	if (status < 0) {
 		SYS_LOG_ERR("Could not configure gpio %d",
 			    CONFIG_LIS3DH_INT2_GPIO_PIN);
