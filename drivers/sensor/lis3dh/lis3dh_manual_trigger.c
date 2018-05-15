@@ -394,7 +394,6 @@ int lis3dh_init_interrupt(struct device *dev)
 {
 	struct lis3dh_data *lis3dh = dev->driver_data;
 	int status;
-	u8_t raw[LIS3DH_DATA_OFS + 2];
 
 	/* setup data ready gpio interrupt */
 	lis3dh->gpio = device_get_binding(CONFIG_LIS3DH_GPIO_DEV_NAME);
