@@ -169,8 +169,8 @@ static int lis3dh_disable_gpio_int2(const struct lis3dh_data *lis3dh)
 	return 0;
 }
 
-#define LIS3DH_ANYM_CFG (LIS3DH_INT_CFG_ZHIE_ZUPE | LIS3DH_INT_CFG_YHIE_YUPE | \
-			 LIS3DH_INT_CFG_XHIE_XUPE)
+#define LIS3DH_ANYM_CFG (LIS3DH_6D_CFG | LIS3DH_INT_CFG_ZHIE_ZUPE |	  \
+                         LIS3DH_INT_CFG_YHIE_YUPE | LIS3DH_INT_CFG_XHIE_XUPE)
 static int lis3dh_start_trigger_int2(const struct lis3dh_data *lis3dh)
 {
 	int status;
