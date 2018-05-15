@@ -72,6 +72,11 @@ config LIS3DH_TRIGGER_OWN_THREAD
 	depends on GPIO
 	select LIS3DH_TRIGGER
 
+config LIS3DH_TRIGGER_MANUAL
+	bool
+	prompt "Manual triggering"
+	select LIS3DH_TRIGGER_MANUAL
+
 endchoice
 
 config LIS3DH_TRIGGER
@@ -82,7 +87,7 @@ config LIS3DH_GPIO_DEV_NAME
 	string
 	prompt "GPIO device"
 	default "GPIO_0"
-	depends on LIS3DH && LIS3DH_TRIGGER
+	depends on LIS3DH && (LIS3DH_TRIGGER || LIS3DH_TRIGGER_MANUAL)
 	help
 	  The device name of the GPIO device to which the LIS3DH interrupt pins
 	  are connected.
@@ -91,7 +96,7 @@ config LIS3DH_INT1_GPIO_PIN
 	int
 	prompt "Interrupt 1 GPIO pin number"
 	default 0
-	depends on LIS3DH && LIS3DH_TRIGGER
+	depends on LIS3DH && (LIS3DH_TRIGGER || LIS3DH_TRIGGER_MANUAL)
 	help
 	  The number of the GPIO on which the data ready interrupt signal from the
 	  LIS3DH chip will be received.
@@ -100,7 +105,7 @@ config LIS3DH_INT2_GPIO_PIN
 	int
 	prompt "Interrupt 2 GPIO pin number"
 	default 0
-	depends on LIS3DH && LIS3DH_TRIGGER
+	depends on LIS3DH && (LIS3DH_TRIGGER || LIS3DH_TRIGGER_MANUAL)
 	help
 	  The number of the GPIO on which the anymotion interrupt signal from the
 	  LIS3DH chip will be received.
