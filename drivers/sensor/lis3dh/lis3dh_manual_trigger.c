@@ -101,21 +101,8 @@ static int lis3dh_trigger_anym_set(struct device *dev,
 				   sensor_trigger_handler_t handler)
 {
 	struct lis3dh_data *lis3dh = dev->driver_data;
-	int status;
-	u8_t reg_val;
 
 	gpio_pin_disable_callback(lis3dh->gpio, CONFIG_LIS3DH_INT2_GPIO_PIN);
-
-	/* cancel potentially pending trigger */
-	atomic_clear_bit(&lis3dh->trig_flags, TRIGGED_INT2);
-
-	/* disable all interrupt 2 events */
-	status = i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
-				    LIS3DH_REG_INT2_CFG, 0);
-
-	/* make sure any pending interrupt is cleared */
-	status = i2c_reg_read_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
-				   LIS3DH_REG_INT2_SRC, &reg_val);
 
 	lis3dh->handler_anymotion = handler;
 
