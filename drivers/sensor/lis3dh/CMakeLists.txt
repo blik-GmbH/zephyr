@@ -1,2 +1,3 @@
 zephyr_sources_ifdef(CONFIG_LIS3DH lis3dh.c)
 zephyr_sources_ifdef(CONFIG_LIS3DH_TRIGGER lis3dh_trigger.c)
+zephyr_sources_ifdef(CONFIG_LIS3DH_TRIGGER_MANUAL lis3dh_manual_trigger.c)
