@@ -112,8 +112,13 @@ static int kwx_init(struct device *arg)
 	/* disable interrupts */
 	oldLevel = irq_lock();
 
-	/* Disable the watchdog */
+	/* Configure or disable the watchdog */
+#if defined(CONFIG_WATCHDOG)
+	/* 1kHz LPC clock, 2^13 cycles = 8192ms */
+	SIM->COPC = SIM_COPC_COPCLKSEL(00) | SIM_COPC_COPCLKS(1) | SIM_COPC_COPT(01);
+#else
 	SIM->COPC = 0;
+#endif
 
 	/* Initialize system clock to 40 MHz */
 	clkInit();
