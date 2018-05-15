@@ -96,8 +96,6 @@ static int lis3dh_start_trigger_int1(const struct lis3dh_data *lis3dh)
 				   (1 << LIS3DH_EN_DRDY1_INT1_SHIFT));
 }
 
-#define LIS3DH_ANYM_CFG (LIS3DH_INT_CFG_ZHIE_ZUPE | LIS3DH_INT_CFG_YHIE_YUPE | \
-			 LIS3DH_INT_CFG_XHIE_XUPE)
 
 static int lis3dh_trigger_anym_set(struct device *dev,
 				   sensor_trigger_handler_t handler)
@@ -136,14 +134,44 @@ static int lis3dh_trigger_anym_set(struct device *dev,
 	return 0;
 }
 
+#define LIS3DH_EN_INT2_CFG (GPIO_DIR_IN | GPIO_INT |	  \
+                            GPIO_INT_LEVEL | GPIO_INT_ACTIVE_HIGH |	  \
+                            GPIO_INT_DEBOUNCE)
+
+static int lis3dh_enable_gpio_int2(const struct lis3dh_data *lis3dh)
+{
+	int status;
+
+	unsigned int key = irq_lock();
+
+	status = gpio_pin_configure(lis3dh->gpio, CONFIG_LIS3DH_INT2_GPIO_PIN,
+	                            LIS3DH_EN_INT2_CFG);
+	if (status < 0) {
+		SYS_LOG_ERR("Could not configure gpio %d",
+			    CONFIG_LIS3DH_INT2_GPIO_PIN);
+		return status;
+	}
+
+	status = gpio_pin_enable_callback(lis3dh->gpio,
+	                                  CONFIG_LIS3DH_INT2_GPIO_PIN);
+	if (status < 0) {
+		SYS_LOG_ERR("Could not enable callback: %d", status);
+		return status;
+	}
+
+	irq_unlock(key);
+
+	return 0;
+}
+#define LIS3DH_ANYM_CFG (LIS3DH_INT_CFG_ZHIE_ZUPE | LIS3DH_INT_CFG_YHIE_YUPE | \
+			 LIS3DH_INT_CFG_XHIE_XUPE)
 static int lis3dh_start_trigger_int2(const struct lis3dh_data *lis3dh)
 {
 	int status;
 
-	status = gpio_pin_enable_callback(lis3dh->gpio,
-					  CONFIG_LIS3DH_INT2_GPIO_PIN);
+        status = lis3dh_enable_gpio_int2(lis3dh);
 	if (unlikely(status < 0)) {
-		SYS_LOG_ERR("enable callback failed err=%d", status);
+		SYS_LOG_ERR("Could not enable int2, %d", status);
 	}
 
 	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
