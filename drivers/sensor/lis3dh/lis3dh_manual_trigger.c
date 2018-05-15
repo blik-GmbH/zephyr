@@ -339,10 +339,15 @@ static void lis3dh_thread_cb(void *arg)
 			.chan = lis3dh->chan_drdy,
 		};
 		u8_t reg_val;
+		int status;
 
 		/* clear interrupt 2 to de-assert int2 line */
-		i2c_reg_read_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
-				  LIS3DH_REG_INT2_SRC, &reg_val);
+		status = i2c_reg_read_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
+		                           LIS3DH_REG_INT2_SRC, &reg_val);
+		if (unlikely(status < 0)) {
+			SYS_LOG_ERR("Could not clear interrupt (%d)\n", status);
+			return;
+		}
 
 		if (likely(lis3dh->handler_anymotion != NULL)) {
 			lis3dh->handler_anymotion(dev, &anym_trigger);
