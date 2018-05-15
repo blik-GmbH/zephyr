@@ -45,7 +45,7 @@ static int lis3dh_trigger_drdy_set(struct device *dev, enum sensor_channel chan,
 	atomic_set_bit(&lis3dh->trig_flags, START_TRIG_INT1);
 #if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
 	k_sem_give(&lis3dh->gpio_sem);
-#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD)
+#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	k_work_submit(&lis3dh->work);
 #endif
 
@@ -130,7 +130,7 @@ static int lis3dh_trigger_anym_set(struct device *dev,
 	atomic_set_bit(&lis3dh->trig_flags, START_TRIG_INT2);
 #if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
 	k_sem_give(&lis3dh->gpio_sem);
-#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD)
+#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	k_work_submit(&lis3dh->work);
 #endif
 	return 0;
@@ -229,7 +229,7 @@ static void lis3dh_gpio_int1_callback(struct device *dev,
 
 #if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
 	k_sem_give(&lis3dh->gpio_sem);
-#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD)
+#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	k_work_submit(&lis3dh->work);
 #endif
 }
@@ -246,7 +246,7 @@ static void lis3dh_gpio_int2_callback(struct device *dev,
 
 #if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
 	k_sem_give(&lis3dh->gpio_sem);
-#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD)
+#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	k_work_submit(&lis3dh->work);
 #endif
 }
@@ -329,7 +329,7 @@ static void lis3dh_thread(void *arg1, void *unused2, void *unused3)
 }
 #endif
 
-#ifdef CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD
+#if defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 static void lis3dh_work_cb(struct k_work *work)
 {
 	struct lis3dh_data *lis3dh =
@@ -407,7 +407,7 @@ int lis3dh_init_interrupt(struct device *dev)
 			CONFIG_LIS3DH_THREAD_STACK_SIZE,
 			(k_thread_entry_t)lis3dh_thread, dev, NULL, NULL,
 			K_PRIO_COOP(CONFIG_LIS3DH_THREAD_PRIORITY), 0, 0);
-#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD)
+#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	lis3dh->work.handler = lis3dh_work_cb;
 	lis3dh->dev = dev;
 #endif
