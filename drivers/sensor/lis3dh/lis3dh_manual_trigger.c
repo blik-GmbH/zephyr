@@ -118,9 +118,6 @@ static int lis3dh_trigger_anym_set(struct device *dev,
 				   LIS3DH_REG_INT2_SRC, &reg_val);
 
 	lis3dh->handler_anymotion = handler;
-	if ((handler == NULL) || (status < 0)) {
-		return status;
-	}
 
 	/* serialize start of int2 in thread to synchronize output sampling
 	 * and first interrupt. this avoids concurrent bus context access.
@@ -163,15 +160,45 @@ static int lis3dh_enable_gpio_int2(const struct lis3dh_data *lis3dh)
 
 	return 0;
 }
+
+#define LIS3DH_DIS_INT2_CFG (GPIO_DIR_IN)
+static int lis3dh_disable_gpio_int2(const struct lis3dh_data *lis3dh)
+{
+	int status;
+
+	unsigned int key = irq_lock();
+
+	status = gpio_pin_disable_callback(lis3dh->gpio,
+	                                   CONFIG_LIS3DH_INT2_GPIO_PIN);
+	if (status < 0) {
+		SYS_LOG_ERR("Could not disable gpio int2 callback (%d)", status);
+		return status;
+	}
+
+	gpio_pin_configure(lis3dh->gpio, CONFIG_LIS3DH_INT2_GPIO_PIN,
+				    LIS3DH_DIS_INT2_CFG);
+	irq_unlock(key);
+
+	return 0;
+}
+
 #define LIS3DH_ANYM_CFG (LIS3DH_INT_CFG_ZHIE_ZUPE | LIS3DH_INT_CFG_YHIE_YUPE | \
 			 LIS3DH_INT_CFG_XHIE_XUPE)
 static int lis3dh_start_trigger_int2(const struct lis3dh_data *lis3dh)
 {
 	int status;
 
-        status = lis3dh_enable_gpio_int2(lis3dh);
+	/* Setting the handler to NULL will disable the interrupt so
+	 * that you can sleep */
+	if (lis3dh->handler_anymotion == NULL){
+		status = lis3dh_disable_gpio_int2(lis3dh);
+	}
+	else {
+		status = lis3dh_enable_gpio_int2(lis3dh);
+	}
+
 	if (unlikely(status < 0)) {
-		SYS_LOG_ERR("Could not enable int2, %d", status);
+		SYS_LOG_ERR("Could not set the gpio configuration, %d", status);
 	}
 
 	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
