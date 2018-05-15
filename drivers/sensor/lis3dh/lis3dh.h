@@ -136,7 +136,7 @@ struct lis3dh_data {
 	s16_t temp_sample;
 #endif
 
-#ifdef CONFIG_LIS3DH_TRIGGER
+#if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	struct device *gpio;
 	struct gpio_callback gpio_int1_cb;
 	struct gpio_callback gpio_int2_cb;
@@ -150,7 +150,7 @@ struct lis3dh_data {
 	K_THREAD_STACK_MEMBER(thread_stack, CONFIG_LIS3DH_THREAD_STACK_SIZE);
 	struct k_thread thread;
 	struct k_sem gpio_sem;
-#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD)
+#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	struct k_work work;
 	struct device *dev;
 #endif
@@ -164,7 +164,7 @@ int lis3dh_sample_fetch_accel(struct device *dev);
 int lis3dh_sample_fetch_temp(struct device *dev);
 #endif
 
-#ifdef CONFIG_LIS3DH_TRIGGER
+#if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 int lis3dh_trigger_set(struct device *dev,
 		       const struct sensor_trigger *trig,
 		       sensor_trigger_handler_t handler);
