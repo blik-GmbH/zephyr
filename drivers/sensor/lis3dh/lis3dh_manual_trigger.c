@@ -284,6 +284,8 @@ static void lis3dh_gpio_int2_callback(struct device *dev,
 
 	ARG_UNUSED(pins);
 
+	lis3dh_disable_gpio_int2(lis3dh);
+
 	atomic_set_bit(&lis3dh->trig_flags, TRIGGED_INT2);
 
 #if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
