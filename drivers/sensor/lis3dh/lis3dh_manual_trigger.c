@@ -390,10 +390,6 @@ static void lis3dh_work_cb(struct k_work *work)
 					 GPIO_INT_EDGE | GPIO_INT_ACTIVE_HIGH |	\
 					 GPIO_INT_DEBOUNCE)
 
-#define LIS3DH_INT2_CFG                 (GPIO_DIR_IN | GPIO_INT |		\
-					 GPIO_INT_EDGE | GPIO_INT_ACTIVE_HIGH |	\
-					 GPIO_INT_DEBOUNCE)
-
 int lis3dh_init_interrupt(struct device *dev)
 {
 	struct lis3dh_data *lis3dh = dev->driver_data;
@@ -488,9 +484,6 @@ int lis3dh_init_interrupt(struct device *dev)
 		return status;
 	}
 
-	SYS_LOG_INF("int1 on pin=%d cfg=0x%x, int2 on pin=%d cfg=0x%x",
-		    CONFIG_LIS3DH_INT1_GPIO_PIN, LIS3DH_INT1_CFG,
-		    CONFIG_LIS3DH_INT2_GPIO_PIN, LIS3DH_INT2_CFG);
 
 	/* enable interrupt 2 on int2 line */
 	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
