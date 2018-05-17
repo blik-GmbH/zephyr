@@ -105,7 +105,7 @@ static int lis3dh_acc_config(struct device *dev, enum sensor_channel chan,
                              const struct sensor_value *val)
 {
 	switch (attr) {
-#if defined(CONFIG_LIS3DH_TRIGGER)
+#if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	case SENSOR_ATTR_SLOPE_TH:
 	case SENSOR_ATTR_SLOPE_DUR:
 		return lis3dh_acc_slope_config(dev, attr, val);
@@ -174,7 +174,7 @@ int lis3dh_sample_fetch_temp(struct device *dev)
 
 static const struct sensor_driver_api lis3dh_driver_api = {
 	.attr_set = lis3dh_attr_set,
-#if CONFIG_LIS3DH_TRIGGER
+#if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	.trigger_set = lis3dh_trigger_set,
 #endif
 	.sample_fetch = lis3dh_sample_fetch,
@@ -225,7 +225,7 @@ int lis3dh_init(struct device *dev)
 	}
 #endif
 
-#ifdef CONFIG_LIS3DH_TRIGGER
+#if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 	if (lis3dh_init_interrupt(dev) < 0) {
 		SYS_LOG_DBG("Failed to initialize interrupts.");
 		return -EIO;

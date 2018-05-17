@@ -1,0 +1,8 @@
+sample:
+  name: LIS3DH Accelerometer - Manual triggering
+tests:
+  test:
+    harness: sensor
+    platform_whitelist: frdm_kw41z akita_gen2_devboard
+    tags: samples sensor
+    depends_on: i2c
