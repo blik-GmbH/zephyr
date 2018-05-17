@@ -23,10 +23,22 @@
 #define LIS3DH_ACCEL_EN_BITS (LIS3DH_ACCEL_X_EN_BIT | \
 		LIS3DH_ACCEL_Y_EN_BIT | LIS3DH_ACCEL_Z_EN_BIT)
 
+#define LIS3DH_TEMP_CFG_REG		0x1F
+#define LIS3DH_TEMP_EN_BIT		BIT(6)
+#define LIS3DH_ADC_EN_BIT		BIT(7)
+
 #if defined(CONFIG_LIS3DH_POWER_MODE_LOW)
-	#define LIS3DH_LP_EN_BIT	BIT(3)
+#define LIS3DH_TEMP_SHIFT		2
+#define LIS3DH_TEMP_MAG		256
 #elif defined(CONFIG_LIS3DH_POWER_MODE_NORMAL)
-	#define LIS3DH_LP_EN_BIT	0
+#define LIS3DH_TEMP_SHIFT		0
+#define LIS3DH_TEMP_MAG		64
+#endif
+
+#if defined(CONFIG_LIS3DH_POWER_MODE_LOW)
+#define LIS3DH_LP_EN_BIT	BIT(3)
+#elif defined(CONFIG_LIS3DH_POWER_MODE_NORMAL)
+#define LIS3DH_LP_EN_BIT	0
 #endif
 
 #if defined(CONFIG_LIS3DH_ODR_1)
@@ -60,6 +72,7 @@
 #define LIS3DH_REG_CTRL4		0x23
 #define LIS3DH_FS_SHIFT			4
 #define LIS3DH_FS_MASK			(BIT_MASK(2) << LIS3DH_FS_SHIFT)
+#define LIS3DH_BDU_MASK		BIT(7)
 
 #if defined(CONFIG_LIS3DH_ACCEL_RANGE_2G)
 	#define LIS3DH_FS_IDX		0
@@ -107,11 +120,21 @@
 #define LIS3DH_BUF_SZ			7
 #define LIS3DH_DATA_OFS			0
 
+#define LIS3DH_REG_ADC_1_LSB		0x08
+#define LIS3DH_REG_ADC_2_LSB		0x0A
+#define LIS3DH_REG_ADC_3_LSB		0x0C
+#define LIS3DH_REG_ADC_1_MSB		0x09
+#define LIS3DH_REG_ADC_2_MSB		0x0B
+#define LIS3DH_REG_ADC_3_MSB		0x0D
+
 struct lis3dh_data {
 	struct device *i2c;
 	s16_t x_sample;
 	s16_t y_sample;
 	s16_t z_sample;
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+	s16_t temp_sample;
+#endif
 
 #ifdef CONFIG_LIS3DH_TRIGGER
 	struct device *gpio;
@@ -135,12 +158,16 @@ struct lis3dh_data {
 #endif /* CONFIG_LIS3DH_TRIGGER */
 };
 
+int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan);
+int lis3dh_sample_fetch_accel(struct device *dev);
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+int lis3dh_sample_fetch_temp(struct device *dev);
+#endif
+
 #ifdef CONFIG_LIS3DH_TRIGGER
 int lis3dh_trigger_set(struct device *dev,
 		       const struct sensor_trigger *trig,
 		       sensor_trigger_handler_t handler);
-
-int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan);
 
 int lis3dh_init_interrupt(struct device *dev);
 

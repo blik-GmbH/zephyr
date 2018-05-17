@@ -41,6 +41,11 @@ static int lis3dh_channel_get(struct device *dev,
 		lis3dh_convert(val, drv_data->x_sample);
 		lis3dh_convert(val + 1, drv_data->y_sample);
 		lis3dh_convert(val + 2, drv_data->z_sample);
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+	} else if (chan == SENSOR_CHAN_TEMP) {
+		val->val1 = drv_data->temp_sample;
+		val->val2 = 0;
+#endif
 	} else {
 		return -ENOTSUP;
 	}
@@ -50,11 +55,32 @@ static int lis3dh_channel_get(struct device *dev,
 
 int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan)
 {
+	switch (chan) {
+	case SENSOR_CHAN_ACCEL_XYZ:
+		lis3dh_sample_fetch_accel(dev);
+		break;
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+	case SENSOR_CHAN_TEMP:
+		lis3dh_sample_fetch_temp(dev);
+		break;
+#endif
+	case SENSOR_CHAN_ALL:
+		lis3dh_sample_fetch_accel(dev);
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+		lis3dh_sample_fetch_temp(dev);
+#endif
+		break;
+	default:
+		return -ENOTSUP;
+	}
+
+	return 0;
+}
+
+int lis3dh_sample_fetch_accel(struct device *dev)
+{
 	struct lis3dh_data *drv_data = dev->driver_data;
 	u8_t buf[6];
-
-	__ASSERT_NO_MSG(chan == SENSOR_CHAN_ALL ||
-			chan == SENSOR_CHAN_ACCEL_XYZ);
 
 	/*
 	 * since all accel data register addresses are consecutive,
@@ -110,6 +136,42 @@ static int lis3dh_attr_set(struct device *dev, enum sensor_channel chan,
 	return 0;
 }
 
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+int lis3dh_sample_fetch_temp(struct device *dev)
+{
+	struct lis3dh_data *drv_data = dev->driver_data;
+	u8_t buf[2];
+
+	if (i2c_burst_read(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+			   (LIS3DH_REG_ADC_3_LSB | LIS3DH_AUTOINCREMENT_ADDR),
+			   buf, sizeof(buf)) < 0) {
+		SYS_LOG_DBG("Could not read temperature data");
+		return -EIO;
+	}
+
+	s16_t raw = ((buf[1] << 8) | buf [0]);
+
+	/* According to the datasheet, the ADC has a resolution of 10
+	 * bit in normal mode and 8 bit in low-power mode.
+	 * The data is represented as left-aligned 2's complement,
+	 * where the conversion rate is 1 digit/°C.
+	 * The temperature sensor,which is connected to the ADC3, is
+	 * supposed to have a 8-bit resolution.
+	 * The measured LSb is in both power modes bit 6 for the
+	 * temperature sensor.
+	 * The sign-bit might then be at either bit 14 (8 bit from the
+	 * LSb) or bit 15 (10 bit from the LSb). And unclear if this
+	 * is depending on the power mode or not. */
+
+	/* To convert the data depending on the power mode, it gets
+	 * shifted to the MSb and divided to preserve the sign while
+	 * setting the magnitude */
+	drv_data->temp_sample = (raw << LIS3DH_TEMP_SHIFT) / LIS3DH_TEMP_MAG;
+
+	return 0;
+}
+#endif
+
 static const struct sensor_driver_api lis3dh_driver_api = {
 	.attr_set = lis3dh_attr_set,
 #if CONFIG_LIS3DH_TRIGGER
@@ -143,6 +205,25 @@ int lis3dh_init(struct device *dev)
 		SYS_LOG_DBG("Failed to set full scale range.");
 		return -EIO;
 	}
+
+#if defined(CONFIG_LIS3DH_ENABLE_TEMP)
+	/* enable block data update (BDU) to use the auxiliary ADC */
+	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+			       LIS3DH_REG_CTRL4,
+			       LIS3DH_BDU_MASK | LIS3DH_FS_BITS) < 0) {
+		SYS_LOG_DBG("Failed to set BDU-bit.");
+		return -EIO;
+	}
+
+	/* connect temperature sensor to channel 3 of the ADC and
+	 * enable temperature measurement */
+	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+			       LIS3DH_TEMP_CFG_REG,
+			       LIS3DH_TEMP_EN_BIT | LIS3DH_ADC_EN_BIT) < 0) {
+		SYS_LOG_DBG("Failed to enable temperature measurements.");
+		return -EIO;
+	}
+#endif
 
 #ifdef CONFIG_LIS3DH_TRIGGER
 	if (lis3dh_init_interrupt(dev) < 0) {
