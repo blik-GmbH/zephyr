@@ -51,9 +51,11 @@
 
 #define LIS3DH_ODR_SHIFT		4
 #define LIS3DH_ODR_BITS			(LIS3DH_ODR_IDX << LIS3DH_ODR_SHIFT)
+#define LIS3DH_ODR_MASK			(BIT_MASK(4) << LIS3DH_ODR_SHIFT)
 
 #define LIS3DH_REG_CTRL3		0x22
-#define LIS3DH_EN_DRDY1_INT1		BIT(4)
+#define LIS3DH_EN_DRDY1_INT1_SHIFT	4
+#define LIS3DH_EN_DRDY1_INT1		BIT(LIS3DH_EN_DRDY1_INT1_SHIFT)
 
 #define LIS3DH_REG_CTRL4		0x23
 #define LIS3DH_FS_SHIFT			4
@@ -79,6 +81,32 @@
 #define LIS3DH_REG_ACCEL_Y_MSB		0x2B
 #define LIS3DH_REG_ACCEL_Z_MSB		0x2D
 
+#define LIS3DH_REG_CTRL5		0x24
+#define LIS3DH_LIR_INT2_SHIFT		1
+#define LIS3DH_EN_LIR_INT2		BIT(LIS3DH_LIR_INT2_SHIFT)
+
+#define LIS3DH_REG_CTRL6		0x25
+#define LIS3DH_EN_ANYM_INT2_SHIFT	5
+#define LIS3DH_EN_ANYM_INT2		BIT(LIS3DH_EN_ANYM_INT2_SHIFT)
+
+#define LIS3DH_REG_STATUS		0x27
+
+#define LIS3DH_REG_INT2_CFG		0x34
+#define LIS3DH_REG_INT2_SRC		0x35
+#define LIS3DH_REG_INT2_THS		0x36
+#define LIS3DH_REG_INT2_DUR		0x37
+
+#define LIS3DH_AOI_CFG			BIT(7)
+#define LIS3DH_INT_CFG_ZHIE_ZUPE	BIT(5)
+#define LIS3DH_INT_CFG_ZLIE_ZDOWNE	BIT(4)
+#define LIS3DH_INT_CFG_YHIE_YUPE	BIT(3)
+#define LIS3DH_INT_CFG_YLIE_YDOWNE	BIT(2)
+#define LIS3DH_INT_CFG_XHIE_XUPE	BIT(1)
+#define LIS3DH_INT_CFG_XLIE_XDOWNE	BIT(0)
+
+#define LIS3DH_BUF_SZ			7
+#define LIS3DH_DATA_OFS			0
+
 struct lis3dh_data {
 	struct device *i2c;
 	s16_t x_sample;
@@ -87,10 +115,13 @@ struct lis3dh_data {
 
 #ifdef CONFIG_LIS3DH_TRIGGER
 	struct device *gpio;
-	struct gpio_callback gpio_cb;
+	struct gpio_callback gpio_int1_cb;
+	struct gpio_callback gpio_int2_cb;
 
-	struct sensor_trigger data_ready_trigger;
-	sensor_trigger_handler_t data_ready_handler;
+	sensor_trigger_handler_t handler_anymotion;
+	sensor_trigger_handler_t handler_drdy;
+	atomic_t trig_flags;
+	enum sensor_channel chan_drdy;
 
 #if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
 	K_THREAD_STACK_MEMBER(thread_stack, CONFIG_LIS3DH_THREAD_STACK_SIZE);
@@ -112,6 +143,9 @@ int lis3dh_trigger_set(struct device *dev,
 int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan);
 
 int lis3dh_init_interrupt(struct device *dev);
+
+int lis3dh_acc_slope_config(struct device *dev, enum sensor_attribute attr,
+                            const struct sensor_value *val);
 #endif
 
 #define SYS_LOG_DOMAIN "LIS3DH"

@@ -74,7 +74,44 @@ int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan)
 	return 0;
 }
 
+static int lis3dh_acc_config(struct device *dev, enum sensor_channel chan,
+			     enum sensor_attribute attr,
+                             const struct sensor_value *val)
+{
+	switch (attr) {
+#if defined(CONFIG_LIS3DH_TRIGGER)
+	case SENSOR_ATTR_SLOPE_TH:
+	case SENSOR_ATTR_SLOPE_DUR:
+		return lis3dh_acc_slope_config(dev, attr, val);
+#endif
+	default:
+		SYS_LOG_DBG("Accel attribute not supported.");
+		return -ENOTSUP;
+	}
+
+	return 0;
+}
+
+static int lis3dh_attr_set(struct device *dev, enum sensor_channel chan,
+                           enum sensor_attribute attr,
+                           const struct sensor_value *val)
+{
+	switch (chan) {
+	case SENSOR_CHAN_ACCEL_X:
+	case SENSOR_CHAN_ACCEL_Y:
+	case SENSOR_CHAN_ACCEL_Z:
+	case SENSOR_CHAN_ACCEL_XYZ:
+		return lis3dh_acc_config(dev, chan, attr, val);
+	default:
+		SYS_LOG_WRN("attr_set() not supported on this channel.");
+		return -ENOTSUP;
+	}
+
+	return 0;
+}
+
 static const struct sensor_driver_api lis3dh_driver_api = {
+	.attr_set = lis3dh_attr_set,
 #if CONFIG_LIS3DH_TRIGGER
 	.trigger_set = lis3dh_trigger_set,
 #endif
