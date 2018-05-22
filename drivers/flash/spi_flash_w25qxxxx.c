@@ -134,7 +134,9 @@ static int spi_flash_wb_reg_write(struct device *dev, u8_t *data)
  * @param data Pointer to data buffer
  * @param len Requested number of bytes
  *
- * @return `0` on success, `-ERRNO` else
+ * @return 0 on success, <0 otherwise
+ * @retval -EFAULT if offset or (offset + len) out of memory address bounds
+ * @retval -EIO SPI transaction failed
  */
 static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
         size_t len) {
@@ -203,7 +205,9 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
  * @param data Pointer to input data buffer
  * @param len Requested number of bytes
  *
- * @return `0` on success, `-ERRNO` else
+ * @return 0 on success, <0 otherwise
+ * @retval -EFAULT if offset or (offset + len) out of page address bounds
+ * @retval -EIO SPI transaction failed
  *
  * Rejects write accesses that are not within a single 256-byte page according
  * to the device datasheet.
@@ -298,7 +302,9 @@ static int spi_flash_wb_write_protection_set(struct device *dev, bool enable)
  * @param data Pointer to input data buffer
  * @param len Requested number of bytes
  *
- * @return `0` on success, `-ERRNO` else
+ * @return 0 on success, <0 otherwise
+ * @retval -EFAULT if offset or (offset + len) out of memory address bounds
+ * @retval -EIO SPI transaction failed
  *
  * Automatically handles page boundary alignment and splits large transactions
  * into multiple smaller transactions to comply to device limitations.
