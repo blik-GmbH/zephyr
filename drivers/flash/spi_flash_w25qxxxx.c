@@ -143,7 +143,7 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
 
     // Exit if address range out of memory bounds
     if (offset < 0 || (offset + len) > CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE) {
-        return -ENODEV;
+        return -EFAULT;
     }
 
     k_sem_take(&driver_data->sem, K_FOREVER);
