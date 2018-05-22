@@ -15,6 +15,7 @@
 #include <zephyr.h>
 #include <flash.h>
 #include <fs.h>
+#include <init.h>
 #include <device.h>
 #include <stdio.h>
 
@@ -24,6 +25,7 @@
  * Use this if you want the Flash device to be re-formatted upon next boot.
  */
 #define ERASE_DEVICE            0
+#define FLASH_ERASE_PRIORITY    99
 /**
  * @brief Switch determines whether files are also written or only read.
  *
@@ -43,15 +45,6 @@ void main(void) {
 
     fs_file_t file_p;
     int ret;
-
-#if ERASE_DEVICE
-    // Erase device if configured
-    struct device *flash_dev = device_get_binding(
-            CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME);
-    flash_write_protection_set(flash_dev, false);
-    flash_erase(flash_dev, 0, CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE);
-    return;
-#endif
 
 #if WRITE_TO_FILE
     // Create file in root directory
@@ -324,3 +317,15 @@ void main(void) {
 
     printf("End of application\n");
 }
+
+static int nffs_sample_flash_erase(struct device *dev) {
+    if (ERASE_DEVICE) {
+        struct device *flash_dev = device_get_binding(
+                CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME);
+        flash_write_protection_set(flash_dev, false);
+        flash_erase(flash_dev, 0, CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE);
+    }
+    return 0;
+}
+
+SYS_INIT(nffs_sample_flash_erase, POST_KERNEL, FLASH_ERASE_PRIORITY);
