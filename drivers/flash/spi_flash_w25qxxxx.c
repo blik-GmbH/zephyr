@@ -334,9 +334,6 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
             transaction_len = W25QXXXX_PAGE_SIZE
                     - (offset & (W25QXXXX_PAGE_SIZE - 1));
         }
-        else if (len > W25QXXXX_PAGE_SIZE) {
-            transaction_len = W25QXXXX_PAGE_SIZE;
-        }
         else if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN) {
             transaction_len = CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN;
         }
