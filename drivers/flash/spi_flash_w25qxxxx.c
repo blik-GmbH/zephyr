@@ -323,7 +323,10 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
     // access into multiple SPI transactions until requested length is
     // satisfied.
     size_t transaction_len  = 0;
-    off_t relative_offset   = 0;
+    // The given data pointer is declared constant by the API. Therefore, we
+    // use a local incrementing offset variable to hand the reference to the
+    // correct data chunk over to `spi_flash_wb_write_within_page`.
+    off_t data_offset   = 0;
     while (len > 0) {
 
         // Align first write access to W25Q page boundaries
@@ -349,15 +352,15 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
 
         // Write transaction
         rc = spi_flash_wb_write_within_page(dev, offset,
-                (data + relative_offset), transaction_len);
+                (data + data_offset), transaction_len);
         if (rc) {
             return rc;
         }
 
         // Update indices and pointers
-        offset          += transaction_len;
-        len             -= transaction_len;
-        relative_offset += transaction_len;
+        offset      += transaction_len;
+        len         -= transaction_len;
+        data_offset += transaction_len;
     }
 
     return 0;
