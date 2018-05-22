@@ -16,8 +16,10 @@
 
 #include <flash.h>
 #include <spi.h>
+#include <power.h>
 #include <init.h>
 #include <string.h>
+#include <stdio.h>
 #include "spi_flash_w25qxxxx_defs.h"
 #include "spi_flash_w25qxxxx.h"
 #include "flash_priv.h"
@@ -505,6 +507,12 @@ void spi_flash_wb_page_layout(struct device *dev,
     return;
 }
 
+int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, void *context){
+    printf("SPI Flash PM Control\n");
+
+    return 0;
+}
+
 static const struct flash_driver_api spi_flash_api = {
 	.read = spi_flash_wb_read,
 	.write = spi_flash_wb_write,
@@ -541,6 +549,7 @@ static int spi_flash_init(struct device *dev)
 
 static struct spi_flash_data spi_flash_memory_data;
 
-DEVICE_INIT(spi_flash_memory, CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME, spi_flash_init,
+/*DEVICE_INIT(spi_flash_memory, CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME, spi_flash_init,
 	    &spi_flash_memory_data, NULL, POST_KERNEL,
-	    CONFIG_SPI_FLASH_W25QXXXX_INIT_PRIORITY);
+	    CONFIG_SPI_FLASH_W25QXXXX_INIT_PRIORITY);*/
+DEVICE_DEFINE(spi_flash_memory, CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME, spi_flash_init, spi_flash_wb_power_mode_control, &spi_flash_memory_data, NULL, POST_KERNEL, CONFIG_SPI_FLASH_W25QXXXX_INIT_PRIORITY, NULL);

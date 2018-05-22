@@ -17,6 +17,7 @@
 #include <fs.h>
 #include <init.h>
 #include <device.h>
+#include <power.h>
 #include <stdio.h>
 
 /**
@@ -346,6 +347,15 @@ void main(void) {
     //--------------------------------------------------------------------------
 
     printf("End of application\n");
+
+    printf("\n");
+    struct device *flash_dev = device_get_binding(
+                CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME);
+    ret = device_set_power_state(flash_dev, SYS_PM_LOW_POWER_STATE);
+
+    while(1){
+        k_sleep(1000);
+    }
 
     return;
 }
