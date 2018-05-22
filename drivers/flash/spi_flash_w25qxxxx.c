@@ -156,7 +156,7 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
     // If requested data is longer than
     // CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN, split read access into
     // multiple SPI transactions until requested length is satisfied.
-    size_t transaction_len;
+    size_t transaction_len = 0;
     while (len > 0) {
         if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN) {
             transaction_len = CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN;
