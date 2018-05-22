@@ -129,7 +129,7 @@ static int spi_flash_wb_reg_write(struct device *dev, u8_t *data)
 /**
  * @brief Read from W25Q device
  *
- * @param dev Flash device struct
+ * @param dev Flash device struct pointer
  * @param offset Start address relative to Flash memory base address
  * @param data Pointer to data buffer
  * @param len Requested number of bytes
