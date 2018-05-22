@@ -156,12 +156,12 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
     }
 
     // If requested data is longer than
-    // CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN, split read access into
+    // W25QXXXX_PAGE_SIZE, split read access into
     // multiple SPI transactions until requested length is satisfied.
     size_t transaction_len = 0;
     while (len > 0) {
-        if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN) {
-            transaction_len = CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN;
+        if (len > W25QXXXX_PAGE_SIZE) {
+            transaction_len = W25QXXXX_PAGE_SIZE;
         }
         else {
             transaction_len = len;
@@ -319,7 +319,7 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
     }
 
     // If requested data is longer than W25QXXXX_PAGE_SIZE or
-    // CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN, split write
+    // W25QXXXX_PAGE_SIZE, split write
     // access into multiple SPI transactions until requested length is
     // satisfied.
     size_t transaction_len  = 0;
@@ -334,8 +334,8 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
             transaction_len = W25QXXXX_PAGE_SIZE
                     - (offset & (W25QXXXX_PAGE_SIZE - 1));
         }
-        else if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN) {
-            transaction_len = CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN;
+        else if (len > W25QXXXX_PAGE_SIZE) {
+            transaction_len = W25QXXXX_PAGE_SIZE;
         }
         else {
             transaction_len = len;
