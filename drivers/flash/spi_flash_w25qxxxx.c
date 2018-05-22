@@ -186,9 +186,9 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
         memcpy(data, buf + W25QXXXX_LEN_CMD_ADDRESS, transaction_len);
 
         // Update indices and pointers
-        offset = offset + transaction_len;
-        len = len - transaction_len;
-        data = data + transaction_len;
+        offset  += transaction_len;
+        len     -= transaction_len;
+        data    += transaction_len;
 
     }
 
@@ -355,9 +355,9 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
         }
 
         // Update indices and pointers
-        offset = offset + transaction_len;
-        len = len - transaction_len;
-        relative_offset = relative_offset + transaction_len;
+        offset          += transaction_len;
+        len             -= transaction_len;
+        relative_offset += transaction_len;
     }
 
     return 0;
