@@ -508,6 +508,22 @@ void spi_flash_wb_page_layout(struct device *dev,
 }
 
 int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, void *context){
+    /**
+     * command =
+     * - DEVICE_PM_SET_POWER_STATE
+     * - DEVICE_PM_GET_POWER_STATE
+     */
+    /**
+     * - u32_t device_pm_state = *(u32_t *)context (set power state)
+     * - *(u32_t *)context = device_pm_state (get power state)
+     */
+    /**
+     * device_pm_state =
+     * - DEVICE_PM_ACTIVE_STATE
+     * - DEVICE_PM_LOW_POWER_STATE
+     * - DEVICE_PM_SUSPEND_STATE
+     * - DEVICE_PM_OFF_STATE
+     */
     printf("SPI Flash PM Control\n");
 
     return 0;
