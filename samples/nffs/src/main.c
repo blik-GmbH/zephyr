@@ -27,10 +27,9 @@
 #define ERASE_DEVICE            0
 #define FLASH_ERASE_PRIORITY    99
 /**
- * @brief Switch determines whether files are also written or only read.
+ * @brief Switch determines whether files are written.
  *
- * Set to '0' if you want to check whether files have been persistently stored
- * on Flash device.
+ * Set to '0' to disable writes. Reads may fail if no files are written before.
  */
 #define WRITE_TO_FILE           0
 /**
