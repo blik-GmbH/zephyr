@@ -316,8 +316,8 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
     // CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN, split write
     // access into multiple SPI transactions until requested length is
     // satisfied.
-    size_t transaction_len;
-    off_t relative_offset = 0;
+    size_t transaction_len  = 0;
+    off_t relative_offset   = 0;
     while (len > 0) {
 
         // Align first write access to W25Q page boundaries
