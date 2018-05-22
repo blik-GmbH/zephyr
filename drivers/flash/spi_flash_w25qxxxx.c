@@ -217,7 +217,7 @@ static int spi_flash_wb_write_within_page(struct device *dev, off_t offset,
     // Exit if address range out of page bounds
     if (offset < 0 ||
         ((offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > W25QXXXX_PAGE_SIZE) {
-        return -ENOTSUP;
+        return -EFAULT;
     }
 
     k_sem_take(&driver_data->sem, K_FOREVER);
@@ -309,7 +309,7 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
 
     // Exit if address range out of memory bounds
     if (offset < 0 || (offset + len) > CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE) {
-        return -ENODEV;
+        return -EFAULT;
     }
 
     // If requested data is longer than W25QXXXX_PAGE_SIZE or
