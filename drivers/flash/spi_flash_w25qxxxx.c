@@ -137,37 +137,33 @@ static int spi_flash_wb_reg_write(struct device *dev, u8_t *data)
  * @return `0` on success, `-ERRNO` else
  */
 static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
-			     size_t len)
-{
-	struct spi_flash_data *const driver_data = dev->driver_data;
-	u8_t *buf = driver_data->buf;
+        size_t len) {
+    struct spi_flash_data * const driver_data = dev->driver_data;
+    u8_t *buf = driver_data->buf;
 
-	// Exit if address range out of memory bounds
-	if (offset < 0 || (offset + len) > CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE) {
+    // Exit if address range out of memory bounds
+    if (offset < 0 || (offset + len) > CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE) {
         return -ENODEV;
     }
 
-	k_sem_take(&driver_data->sem, K_FOREVER);
+    k_sem_take(&driver_data->sem, K_FOREVER);
 
-	if (spi_flash_wb_config(dev) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+    if (spi_flash_wb_config(dev) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
 
-	// If requested data is longer than
-	// CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN, split read access into
-	// multiple SPI transactions until requested length is satisfied.
-	size_t transaction_len;
-	while(len > 0)
-	{
-	    if(len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN)
-	    {
-	        transaction_len = CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN;
-	    }
-	    else
-	    {
-	        transaction_len = len;
-	    }
+    // If requested data is longer than
+    // CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN, split read access into
+    // multiple SPI transactions until requested length is satisfied.
+    size_t transaction_len;
+    while (len > 0) {
+        if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN) {
+            transaction_len = CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN;
+        }
+        else {
+            transaction_len = len;
+        }
 
         wait_for_flash_idle(dev);
 
@@ -179,8 +175,8 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
         memset(buf + W25QXXXX_LEN_CMD_ADDRESS, 0, transaction_len);
 
         if (spi_transceive(driver_data->spi, buf,
-                    transaction_len + W25QXXXX_LEN_CMD_ADDRESS,
-                    buf, transaction_len + W25QXXXX_LEN_CMD_ADDRESS) != 0) {
+                transaction_len + W25QXXXX_LEN_CMD_ADDRESS, buf,
+                transaction_len + W25QXXXX_LEN_CMD_ADDRESS) != 0) {
             k_sem_give(&driver_data->sem);
             return -EIO;
         }
@@ -192,11 +188,11 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
         len = len - transaction_len;
         data = data + transaction_len;
 
-	}
+    }
 
-	k_sem_give(&driver_data->sem);
+    k_sem_give(&driver_data->sem);
 
-	return 0;
+    return 0;
 }
 
 /**
