@@ -16,7 +16,7 @@
 
 #include <flash.h>
 #include <spi.h>
-#include <power.h>
+#include <device.h>
 #include <init.h>
 #include <string.h>
 #include <stdio.h>
@@ -507,7 +507,7 @@ void spi_flash_wb_page_layout(struct device *dev,
     return;
 }
 
-int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, void *context){
+static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, void *context){
     /**
      * command =
      * - DEVICE_PM_SET_POWER_STATE
@@ -524,9 +524,43 @@ int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, void *con
      * - DEVICE_PM_SUSPEND_STATE
      * - DEVICE_PM_OFF_STATE
      */
+    static u32_t pm_state = DEVICE_PM_ACTIVE_STATE;
+
+    int rc = 0;
+    //u32_t cmd = *(u32_t *)command;
+    u32_t req_pm_state = 0;
+    u8_t flash_cmd = 0;
+
     printf("SPI Flash PM Control\n");
 
-    return 0;
+    if (command == DEVICE_PM_GET_POWER_STATE) {
+        *(u32_t *)context = pm_state;
+    }
+    else if (command == DEVICE_PM_SET_POWER_STATE) {
+        req_pm_state = *(u32_t *)context;
+
+        switch (req_pm_state) {
+            case DEVICE_PM_ACTIVE_STATE:
+                // activate device
+                flash_cmd = W25QXXXX_CMD_RDP;
+                rc = spi_flash_wb_reg_write(dev, &flash_cmd);
+                break;
+            case DEVICE_PM_LOW_POWER_STATE:
+            case DEVICE_PM_SUSPEND_STATE:
+            case DEVICE_PM_OFF_STATE:
+                // power down device
+                flash_cmd = W25QXXXX_CMD_DP;
+                rc = spi_flash_wb_reg_write(dev, &flash_cmd);
+                break;
+            default:
+                return -ENOTSUP;
+        }
+    }
+    else {
+        return -ENOSYS;
+    }
+
+    return rc;
 }
 
 static const struct flash_driver_api spi_flash_api = {
@@ -554,6 +588,9 @@ static int spi_flash_init(struct device *dev)
 	data->spi = spi_dev;
 
 	k_sem_init(&data->sem, 1, UINT_MAX);
+
+	u8_t cmd = W25QXXXX_CMD_RDP;
+	ret = spi_flash_wb_reg_write(dev, &cmd);
 
 	ret = spi_flash_wb_config(dev);
 	if (!ret) {
