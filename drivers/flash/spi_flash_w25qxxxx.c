@@ -304,8 +304,7 @@ static int spi_flash_wb_write_protection_set(struct device *dev, bool enable)
  * into multiple smaller transactions to comply to device limitations.
  */
 static int spi_flash_wb_write(struct device *dev, off_t offset,
-			      const void *data, size_t len)
-{
+        const void *data, size_t len) {
     int rc;
 
     // Exit if address range out of memory bounds
@@ -319,39 +318,33 @@ static int spi_flash_wb_write(struct device *dev, off_t offset,
     // satisfied.
     size_t transaction_len;
     off_t relative_offset = 0;
-    while(len > 0)
-    {
+    while (len > 0) {
 
         // Align first write access to W25Q page boundaries
-        if(((offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > W25QXXXX_PAGE_SIZE)
-        {
-            transaction_len = W25QXXXX_PAGE_SIZE -
-                    (offset & (W25QXXXX_PAGE_SIZE - 1));
+        if ( ( (offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > W25QXXXX_PAGE_SIZE) {
+            transaction_len = W25QXXXX_PAGE_SIZE
+                    - (offset & (W25QXXXX_PAGE_SIZE - 1));
         }
-        else if(len > W25QXXXX_PAGE_SIZE)
-        {
+        else if (len > W25QXXXX_PAGE_SIZE) {
             transaction_len = W25QXXXX_PAGE_SIZE;
         }
-        else if(len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN)
-        {
+        else if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN) {
             transaction_len = CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN;
         }
-        else{
+        else {
             transaction_len = len;
         }
 
         // Disable write protection every time before data is written.
         rc = spi_flash_wb_write_protection_set(dev, false);
-        if(rc)
-        {
+        if (rc) {
             return rc;
         }
 
         // Write transaction
         rc = spi_flash_wb_write_within_page(dev, offset,
                 (data + relative_offset), transaction_len);
-        if(rc)
-        {
+        if (rc) {
             return rc;
         }
 
