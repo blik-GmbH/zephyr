@@ -318,6 +318,9 @@ void main(void) {
     printf("End of application\n");
 }
 
+/**
+ * @brief Erases Flash device before NFFS initialization if #ERASE_DEVICE is set
+ */
 static int nffs_sample_flash_erase(struct device *dev) {
     if (ERASE_DEVICE) {
         struct device *flash_dev = device_get_binding(
