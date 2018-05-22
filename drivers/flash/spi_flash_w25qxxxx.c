@@ -126,123 +126,241 @@ static int spi_flash_wb_reg_write(struct device *dev, u8_t *data)
 	return 0;
 }
 
+/**
+ * @brief Read from W25Q device
+ *
+ * @param dev Flash device struct pointer
+ * @param offset Start address relative to Flash memory base address
+ * @param data Pointer to data buffer
+ * @param len Requested number of bytes
+ *
+ * @return 0 on success, <0 otherwise
+ * @retval -EFAULT if offset or (offset + len) out of memory address bounds
+ * @retval -EIO SPI transaction failed
+ */
 static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
-			     size_t len)
-{
-	struct spi_flash_data *const driver_data = dev->driver_data;
-	u8_t *buf = driver_data->buf;
+        size_t len) {
+    struct spi_flash_data * const driver_data = dev->driver_data;
+    u8_t *buf = driver_data->buf;
 
-	if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN || offset < 0) {
-		return -ENODEV;
-	}
+    // Exit if address range out of memory bounds
+    if (offset < 0 || (offset + len) > CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE) {
+        return -EFAULT;
+    }
 
-	k_sem_take(&driver_data->sem, K_FOREVER);
+    k_sem_take(&driver_data->sem, K_FOREVER);
 
-	if (spi_flash_wb_config(dev) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+    if (spi_flash_wb_config(dev) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
 
-	wait_for_flash_idle(dev);
+    // If requested data is longer than
+    // W25QXXXX_PAGE_SIZE, split read access into
+    // multiple SPI transactions until requested length is satisfied.
+    size_t transaction_len = 0;
+    while (len > 0) {
+        if (len > W25QXXXX_PAGE_SIZE) {
+            transaction_len = W25QXXXX_PAGE_SIZE;
+        }
+        else {
+            transaction_len = len;
+        }
 
-	buf[0] = W25QXXXX_CMD_READ;
-	buf[1] = (u8_t) (offset >> 16);
-	buf[2] = (u8_t) (offset >> 8);
-	buf[3] = (u8_t) offset;
+        wait_for_flash_idle(dev);
 
-	memset(buf + W25QXXXX_LEN_CMD_ADDRESS, 0, len);
+        buf[0] = W25QXXXX_CMD_READ;
+        buf[1] = (u8_t) (offset >> 16);
+        buf[2] = (u8_t) (offset >> 8);
+        buf[3] = (u8_t) offset;
 
-	if (spi_transceive(driver_data->spi, buf, len + W25QXXXX_LEN_CMD_ADDRESS,
-			   buf, len + W25QXXXX_LEN_CMD_ADDRESS) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+        memset(buf + W25QXXXX_LEN_CMD_ADDRESS, 0, transaction_len);
 
-	memcpy(data, buf + W25QXXXX_LEN_CMD_ADDRESS, len);
+        if (spi_transceive(driver_data->spi, buf,
+                transaction_len + W25QXXXX_LEN_CMD_ADDRESS, buf,
+                transaction_len + W25QXXXX_LEN_CMD_ADDRESS) != 0) {
+            k_sem_give(&driver_data->sem);
+            return -EIO;
+        }
 
-	k_sem_give(&driver_data->sem);
+        memcpy(data, buf + W25QXXXX_LEN_CMD_ADDRESS, transaction_len);
 
-	return 0;
+        // Update indices and pointers
+        offset  += transaction_len;
+        len     -= transaction_len;
+        data    += transaction_len;
+
+    }
+
+    k_sem_give(&driver_data->sem);
+
+    return 0;
 }
 
-static int spi_flash_wb_write(struct device *dev, off_t offset,
-			      const void *data, size_t len)
+/**
+ * @brief Writes data to a single W25Q page
+ *
+ * @param dev Flash device struct pointer
+ * @param offset Start address relative to Flash memory base address
+ * @param data Pointer to input data buffer
+ * @param len Requested number of bytes
+ *
+ * @return 0 on success, <0 otherwise
+ * @retval -EFAULT if offset or (offset + len) out of page address bounds
+ * @retval -EIO SPI transaction failed
+ *
+ * Rejects write accesses that are not within a single 256-byte page according
+ * to the device datasheet.
+ */
+static int spi_flash_wb_write_within_page(struct device *dev, off_t offset,
+        const void *data, size_t len)
 {
-	struct spi_flash_data *const driver_data = dev->driver_data;
-	u8_t *buf = driver_data->buf;
+    struct spi_flash_data *const driver_data = dev->driver_data;
+    u8_t *buf = driver_data->buf;
 
-	if (len > CONFIG_SPI_FLASH_W25QXXXX_MAX_DATA_LEN || offset < 0) {
-		return -ENOTSUP;
-	}
+    // Exit if address range out of page bounds
+    if (offset < 0 ||
+        ((offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > W25QXXXX_PAGE_SIZE) {
+        return -EFAULT;
+    }
 
-	k_sem_take(&driver_data->sem, K_FOREVER);
+    k_sem_take(&driver_data->sem, K_FOREVER);
 
-	if (spi_flash_wb_config(dev) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+    if (spi_flash_wb_config(dev) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
 
-	wait_for_flash_idle(dev);
+    wait_for_flash_idle(dev);
 
-	buf[0] = W25QXXXX_CMD_RDSR;
-	spi_flash_wb_reg_read(dev, buf);
+    buf[0] = W25QXXXX_CMD_RDSR;
+    spi_flash_wb_reg_read(dev, buf);
 
-	if (!(buf[1] & W25QXXXX_WEL_BIT)) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+    if (!(buf[1] & W25QXXXX_WEL_BIT)) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
 
-	wait_for_flash_idle(dev);
+    wait_for_flash_idle(dev);
 
-	buf[0] = W25QXXXX_CMD_PP;
-	buf[1] = (u8_t) (offset >> 16);
-	buf[2] = (u8_t) (offset >> 8);
-	buf[3] = (u8_t) offset;
+    buf[0] = W25QXXXX_CMD_PP;
+    buf[1] = (u8_t) (offset >> 16);
+    buf[2] = (u8_t) (offset >> 8);
+    buf[3] = (u8_t) offset;
 
-	memcpy(buf + W25QXXXX_LEN_CMD_ADDRESS, data, len);
+    memcpy(buf + W25QXXXX_LEN_CMD_ADDRESS, data, len);
 
-	/* Assume write protection has been disabled. Note that W25QXXXX
-	 * flash automatically turns on write protection at the completion
-	 * of each write or erase transaction.
-	 */
-	if (spi_write(driver_data->spi, buf, len + W25QXXXX_LEN_CMD_ADDRESS) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+    /* Assume write protection has been disabled. Note that W25QXXXX
+     * flash automatically turns on write protection at the completion
+     * of each write or erase transaction.
+     */
+    if (spi_write(driver_data->spi, buf, len + W25QXXXX_LEN_CMD_ADDRESS) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
 
-	k_sem_give(&driver_data->sem);
+    k_sem_give(&driver_data->sem);
 
-	return 0;
+    return 0;
 }
 
 static int spi_flash_wb_write_protection_set(struct device *dev, bool enable)
 {
-	struct spi_flash_data *const driver_data = dev->driver_data;
-	u8_t buf = 0;
+    struct spi_flash_data *const driver_data = dev->driver_data;
+    u8_t buf = 0;
 
-	k_sem_take(&driver_data->sem, K_FOREVER);
+    k_sem_take(&driver_data->sem, K_FOREVER);
 
-	if (spi_flash_wb_config(dev) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+    if (spi_flash_wb_config(dev) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
 
-	wait_for_flash_idle(dev);
+    wait_for_flash_idle(dev);
 
-	if (enable) {
-		buf = W25QXXXX_CMD_WRDI;
-	} else {
-		buf = W25QXXXX_CMD_WREN;
-	}
+    if (enable) {
+        buf = W25QXXXX_CMD_WRDI;
+    } else {
+        buf = W25QXXXX_CMD_WREN;
+    }
 
-	if (spi_flash_wb_reg_write(dev, &buf) != 0) {
-		k_sem_give(&driver_data->sem);
-		return -EIO;
-	}
+    if (spi_flash_wb_reg_write(dev, &buf) != 0) {
+        k_sem_give(&driver_data->sem);
+        return -EIO;
+    }
 
-	k_sem_give(&driver_data->sem);
+    k_sem_give(&driver_data->sem);
 
-	return 0;
+    return 0;
+}
+
+/**
+ * @brief Write to Flash memory
+ *
+ * @param dev Flash device struct
+ * @param offset Start address relative to Flash memory base address
+ * @param data Pointer to input data buffer
+ * @param len Requested number of bytes
+ *
+ * @return 0 on success, <0 otherwise
+ * @retval -EFAULT if offset or (offset + len) out of memory address bounds
+ * @retval -EIO SPI transaction failed
+ *
+ * Automatically handles page boundary alignment and splits large transactions
+ * into multiple smaller transactions to comply to device limitations.
+ */
+static int spi_flash_wb_write(struct device *dev, off_t offset,
+        const void *data, size_t len) {
+    int rc;
+
+    // Exit if address range out of memory bounds
+    if (offset < 0 || (offset + len) > CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE) {
+        return -EFAULT;
+    }
+
+    // If requested data is longer than W25QXXXX_PAGE_SIZE or
+    // W25QXXXX_PAGE_SIZE, split write
+    // access into multiple SPI transactions until requested length is
+    // satisfied.
+    size_t transaction_len  = 0;
+    // The given data pointer is declared constant by the API. Therefore, we
+    // use a local incrementing offset variable to hand the reference to the
+    // correct data chunk over to `spi_flash_wb_write_within_page`.
+    off_t data_offset   = 0;
+    while (len > 0) {
+
+        // Align first write access to W25Q page boundaries
+        if ( ( (offset & (W25QXXXX_PAGE_SIZE - 1)) + len) > W25QXXXX_PAGE_SIZE) {
+            transaction_len = W25QXXXX_PAGE_SIZE
+                    - (offset & (W25QXXXX_PAGE_SIZE - 1));
+        }
+        else if (len > W25QXXXX_PAGE_SIZE) {
+            transaction_len = W25QXXXX_PAGE_SIZE;
+        }
+        else {
+            transaction_len = len;
+        }
+
+        // Disable write protection every time before data is written.
+        rc = spi_flash_wb_write_protection_set(dev, false);
+        if (rc) {
+            return rc;
+        }
+
+        // Write transaction
+        rc = spi_flash_wb_write_within_page(dev, offset,
+                (data + data_offset), transaction_len);
+        if (rc) {
+            return rc;
+        }
+
+        // Update indices and pointers
+        offset      += transaction_len;
+        len         -= transaction_len;
+        data_offset += transaction_len;
+    }
+
+    return 0;
 }
 
 static inline int spi_flash_wb_erase_internal(struct device *dev,
