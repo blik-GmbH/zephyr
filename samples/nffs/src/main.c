@@ -46,40 +46,40 @@ void main(void) {
     fs_file_t file_p;
     int ret;
 
-#if WRITE_TO_FILE
-    // Create file in root directory
-    // Don't forget the forward slash '/' that denotes the root directory.
-    // Else, file creation will fail.
-    ret = fs_open(&file_p, "/file.txt");
-    if (ret) {
-        printf("Could not open file\n");
-        k_sleep(100);
-        return;
-    }
-    else {
-        printf("File open\n");
-    }
+    if (WRITE_TO_FILE) {
+        // Create file in root directory
+        // Don't forget the forward slash '/' that denotes the root directory.
+        // Else, file creation will fail.
+        ret = fs_open(&file_p, "/file.txt");
+        if (ret) {
+            printf("Could not open file\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("File open\n");
+        }
 
-    ret = fs_write(&file_p, &test_phrase, test_phrase_len);
-    if (ret != test_phrase_len) {
-        printf("Something went wrong during writing\n");
+        ret = fs_write(&file_p, &test_phrase, test_phrase_len);
+        if (ret != test_phrase_len) {
+            printf("Something went wrong during writing\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("Wrote string to file\n");
+        }
         k_sleep(100);
-        return;
-    }
-    else {
-        printf("Wrote string to file\n");
-    }
-    k_sleep(100);
 
-    ret = fs_close(&file_p);
-    if (ret) {
-        printf("Could not close file\n");
+        ret = fs_close(&file_p);
+        if (ret) {
+            printf("Could not close file\n");
+        }
+        else {
+            printf("File closed\n");
+        }
+        k_sleep(100);
     }
-    else {
-        printf("File closed\n");
-    }
-    k_sleep(100);
-#endif
 
     // Read the contents of file in root directory.
     ret = fs_open(&file_p, "/file.txt");
@@ -112,38 +112,38 @@ void main(void) {
         printf("File closed\n");
     }
 
-#if WRITE_TO_FILE
-    // Create another file in the root directory
-    ret = fs_open(&file_p, "/file1.txt");
-    if (ret) {
-        printf("Could not open file\n");
-        k_sleep(100);
-        return;
-    }
-    else {
-        printf("File open\n");
-    }
+    if (WRITE_TO_FILE) {
+        // Create another file in the root directory
+        ret = fs_open(&file_p, "/file1.txt");
+        if (ret) {
+            printf("Could not open file\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("File open\n");
+        }
 
-    ret = fs_write(&file_p, &test_phrase2, test_phrase_len);
-    if (ret != test_phrase_len) {
-        printf("Something went wrong during writing\n");
+        ret = fs_write(&file_p, &test_phrase2, test_phrase_len);
+        if (ret != test_phrase_len) {
+            printf("Something went wrong during writing\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("Wrote string to file\n");
+        }
         k_sleep(100);
-        return;
-    }
-    else {
-        printf("Wrote string to file\n");
-    }
-    k_sleep(100);
 
-    ret = fs_close(&file_p);
-    if (ret) {
-        printf("Could not close file\n");
+        ret = fs_close(&file_p);
+        if (ret) {
+            printf("Could not close file\n");
+        }
+        else {
+            printf("File closed\n");
+        }
+        k_sleep(100);
     }
-    else {
-        printf("File closed\n");
-    }
-    k_sleep(100);
-#endif
 
     // Try to also read from that file
     ret = fs_open(&file_p, "/file1.txt");
@@ -176,38 +176,38 @@ void main(void) {
         printf("File closed\n");
     }
 
-#if WRITE_TO_FILE
-    // Create a third file in the root directory
-    ret = fs_open(&file_p, "/file2.txt");
-    if (ret) {
-        printf("Could not open file\n");
-        k_sleep(100);
-        return;
-    }
-    else {
-        printf("File open\n");
-    }
+    if (WRITE_TO_FILE) {
+        // Create a third file in the root directory
+        ret = fs_open(&file_p, "/file2.txt");
+        if (ret) {
+            printf("Could not open file\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("File open\n");
+        }
 
-    ret = fs_write(&file_p, &test_phrase3, test_phrase_len);
-    if (ret != test_phrase_len) {
-        printf("Something went wrong during writing\n");
+        ret = fs_write(&file_p, &test_phrase3, test_phrase_len);
+        if (ret != test_phrase_len) {
+            printf("Something went wrong during writing\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("Wrote string to file\n");
+        }
         k_sleep(100);
-        return;
-    }
-    else {
-        printf("Wrote string to file\n");
-    }
-    k_sleep(100);
 
-    ret = fs_close(&file_p);
-    if (ret) {
-        printf("Could not close file\n");
+        ret = fs_close(&file_p);
+        if (ret) {
+            printf("Could not close file\n");
+        }
+        else {
+            printf("File closed\n");
+        }
+        k_sleep(100);
     }
-    else {
-        printf("File closed\n");
-    }
-    k_sleep(100);
-#endif
 
     // Also try to read from the third file
     ret = fs_open(&file_p, "/file2.txt");
@@ -244,44 +244,44 @@ void main(void) {
 
     printf("Subdirectory\n");
 
-#if WRITE_TO_FILE
-    // Create a subdirectory AND a file within that subdirectory
-    ret = fs_mkdir("/mydir");
-    if (ret) {
-        printf("Could not make directory\n");
-    }
-    else {
-        printf("Created directory\n");
-    }
+    if (WRITE_TO_FILE) {
+        // Create a subdirectory AND a file within that subdirectory
+        ret = fs_mkdir("/mydir");
+        if (ret) {
+            printf("Could not make directory\n");
+        }
+        else {
+            printf("Created directory\n");
+        }
 
-    ret = fs_open(&file_p, "/mydir/file4.txt");
-    if (ret) {
-        printf("Could not open file\n");
-        k_sleep(100);
-        return;
-    }
-    else {
-        printf("File open\n");
-    }
+        ret = fs_open(&file_p, "/mydir/file4.txt");
+        if (ret) {
+            printf("Could not open file\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("File open\n");
+        }
 
-    ret = fs_write(&file_p, &test_phrase, test_phrase_len);
-    if (ret != test_phrase_len) {
-        printf("Something went wrong during writing\n");
-        k_sleep(100);
-        return;
-    }
-    else {
-        printf("Wrote string to file\n");
-    }
+        ret = fs_write(&file_p, &test_phrase, test_phrase_len);
+        if (ret != test_phrase_len) {
+            printf("Something went wrong during writing\n");
+            k_sleep(100);
+            return;
+        }
+        else {
+            printf("Wrote string to file\n");
+        }
 
-    ret = fs_close(&file_p);
-    if (ret) {
-        printf("Could not close file\n");
+        ret = fs_close(&file_p);
+        if (ret) {
+            printf("Could not close file\n");
+        }
+        else {
+            printf("File closed\n");
+        }
     }
-    else {
-        printf("File closed\n");
-    }
-#endif
 
     // Try to read from the file in the subdirectory
     ret = fs_open(&file_p, "/mydir/file4.txt");
