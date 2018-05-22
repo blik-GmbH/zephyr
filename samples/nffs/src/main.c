@@ -41,12 +41,20 @@
  */
 #define READ_FROM_FILE          1
 
+
+const char dirpath0[] = "/mydir";
+const char filepath0[] = "/file0.txt";
+const char filepath1[] = "/file1.txt";
+const char filepath2[] = "/file2.txt";
+const char filepath3[] = "/mydir/file3.txt";
+
+const char teststring0[] = "Hello blik!\n";
+const char teststring1[] = "Hello blob!\n";
+const char teststring2[] = "Hello blak!\n";
+
+
 void main(void) {
-    const char test_phrase[] = "Hello blik!\n";
-    const char test_phrase2[] = "Hello blob!\n";
-    const char test_phrase3[] = "Hello blak!\n";
-    const size_t test_phrase_len = 12;
-    char buf[test_phrase_len];
+    char buf[sizeof(teststring0)];
 
     printf("NFFS test\n\n");
 
@@ -59,7 +67,7 @@ void main(void) {
         // Create file in root directory
         // Don't forget the forward slash '/' that denotes the root directory.
         // Else, file creation will fail.
-        ret = fs_open(&file_p, "/file.txt");
+        ret = fs_open(&file_p, filepath0);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -69,8 +77,8 @@ void main(void) {
             printf("File open\n");
         }
 
-        ret = fs_write(&file_p, &test_phrase, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_write(&file_p, &teststring0, sizeof(teststring0));
+        if (ret != sizeof(teststring0)) {
             printf("Something went wrong during writing\n");
             k_sleep(100);
             return;
@@ -92,7 +100,7 @@ void main(void) {
 
     if (READ_FROM_FILE) {
         // Read the contents of file in root directory.
-        ret = fs_open(&file_p, "/file.txt");
+        ret = fs_open(&file_p, filepath0);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -102,13 +110,13 @@ void main(void) {
             printf("File open\n");
         }
 
-        ret = fs_read(&file_p, &buf, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_read(&file_p, &buf, sizeof(teststring0));
+        if (ret != sizeof(teststring0)) {
             printf("Something went wrong during read\n");
         }
         else {
             printf("Read from file:\n");
-            for (int i = 0; i < test_phrase_len; i++) {
+            for (int i = 0; i < sizeof(teststring0); i++) {
                 printf("%c", buf[i]);
             }
             printf("\n");
@@ -127,7 +135,7 @@ void main(void) {
 
     if (WRITE_TO_FILE) {
         // Create another file in the root directory
-        ret = fs_open(&file_p, "/file1.txt");
+        ret = fs_open(&file_p, filepath1);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -137,8 +145,8 @@ void main(void) {
             printf("File open\n");
         }
 
-        ret = fs_write(&file_p, &test_phrase2, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_write(&file_p, &teststring1, sizeof(teststring1));
+        if (ret != sizeof(teststring1)) {
             printf("Something went wrong during writing\n");
             k_sleep(100);
             return;
@@ -160,7 +168,7 @@ void main(void) {
 
     if (READ_FROM_FILE) {
         // Try to also read from that file
-        ret = fs_open(&file_p, "/file1.txt");
+        ret = fs_open(&file_p, filepath1);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -170,13 +178,13 @@ void main(void) {
             printf("File open\n");
         }
 
-        ret = fs_read(&file_p, &buf, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_read(&file_p, &buf, sizeof(teststring1));
+        if (ret != sizeof(teststring1)) {
             printf("Something went wrong during read\n");
         }
         else {
             printf("Read from file:\n");
-            for (int i = 0; i < test_phrase_len; i++) {
+            for (int i = 0; i < sizeof(teststring1); i++) {
                 printf("%c", buf[i]);
             }
             printf("\n");
@@ -195,7 +203,7 @@ void main(void) {
 
     if (WRITE_TO_FILE) {
         // Create a third file in the root directory
-        ret = fs_open(&file_p, "/file2.txt");
+        ret = fs_open(&file_p, filepath2);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -205,8 +213,8 @@ void main(void) {
             printf("File open\n");
         }
 
-        ret = fs_write(&file_p, &test_phrase3, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_write(&file_p, &teststring2, sizeof(teststring2));
+        if (ret != sizeof(teststring2)) {
             printf("Something went wrong during writing\n");
             k_sleep(100);
             return;
@@ -228,7 +236,7 @@ void main(void) {
 
     if (READ_FROM_FILE) {
         // Also try to read from the third file
-        ret = fs_open(&file_p, "/file2.txt");
+        ret = fs_open(&file_p, filepath2);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -238,13 +246,13 @@ void main(void) {
             printf("File open\n");
         }
 
-        ret = fs_read(&file_p, &buf, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_read(&file_p, &buf, sizeof(teststring2));
+        if (ret != sizeof(teststring2)) {
             printf("Something went wrong during read\n");
         }
         else {
             printf("Read from file:\n");
-            for (int i = 0; i < test_phrase_len; i++) {
+            for (int i = 0; i < sizeof(teststring2); i++) {
                 printf("%c", buf[i]);
             }
             printf("\n");
@@ -265,7 +273,7 @@ void main(void) {
 
     if (WRITE_TO_FILE) {
         // Create a subdirectory AND a file within that subdirectory
-        ret = fs_mkdir("/mydir");
+        ret = fs_mkdir(dirpath0);
         if (ret) {
             printf("Could not make directory\n");
         }
@@ -273,7 +281,7 @@ void main(void) {
             printf("Created directory\n");
         }
 
-        ret = fs_open(&file_p, "/mydir/file4.txt");
+        ret = fs_open(&file_p, filepath3);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -283,8 +291,8 @@ void main(void) {
             printf("File open\n");
         }
 
-        ret = fs_write(&file_p, &test_phrase, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_write(&file_p, &teststring0, sizeof(teststring0));
+        if (ret != sizeof(teststring0)) {
             printf("Something went wrong during writing\n");
             k_sleep(100);
             return;
@@ -304,7 +312,7 @@ void main(void) {
 
     if (READ_FROM_FILE) {
         // Try to read from the file in the subdirectory
-        ret = fs_open(&file_p, "/mydir/file4.txt");
+        ret = fs_open(&file_p, filepath3);
         if (ret) {
             printf("Could not open file\n");
             k_sleep(100);
@@ -314,14 +322,13 @@ void main(void) {
             printf("File open\n");
         }
 
-        // char buf[test_phrase_len];
-        ret = fs_read(&file_p, &buf, test_phrase_len);
-        if (ret != test_phrase_len) {
+        ret = fs_read(&file_p, &buf, sizeof(teststring0));
+        if (ret != sizeof(teststring0)) {
             printf("Something went wrong during read: %d\n", ret);
         }
         else {
             printf("Read from file:\n");
-            for (int i = 0; i < test_phrase_len; i++) {
+            for (int i = 0; i < sizeof(teststring0); i++) {
                 printf("%c", buf[i]);
             }
             printf("\n");
@@ -339,6 +346,8 @@ void main(void) {
     //--------------------------------------------------------------------------
 
     printf("End of application\n");
+
+    return;
 }
 
 /**
