@@ -202,7 +202,7 @@ static int spi_flash_wb_read(struct device *dev, off_t offset, void *data,
 /**
  * @brief Writes data to a single W25Q page
  *
- * @param dev Flash device struct
+ * @param dev Flash device struct pointer
  * @param offset Start address relative to Flash memory base address
  * @param data Pointer to input data buffer
  * @param len Requested number of bytes
