@@ -69,4 +69,53 @@ void main(void)
 	} else {
 		printf("   Data read does not match with data written!!\n");
 	}
+
+
+	/*
+	 * Power mode test
+	 */
+	printf("\nTest 3: Flash power modes\n");
+	int ret;
+	uint32_t pm_state;
+
+	printf("Query Flash power mode\n");
+	ret = device_get_power_state(flash_dev, &pm_state);
+	if (ret || pm_state != DEVICE_PM_ACTIVE_STATE){
+	    printf("ERROR: Power mode should be DEVICE_PM_ACTIVE_STATE\n");
+	}
+	else{
+	    printf("GOOD: Power mode is DEVICE_PM_ACTIVE_STATE\n");
+	}
+
+	while (1){
+	    printf("15 seconds active state\n");
+	    k_sleep(15000);
+	    printf("Switch device to power-down mode\n");
+	    ret = device_set_power_state(flash_dev, DEVICE_PM_LOW_POWER_STATE);
+	    if (ret){
+	        printf("ERROR: Couldn't set power-down mode\n");
+	    }
+	    ret = device_get_power_state(flash_dev, &pm_state);
+	    if (ret || pm_state != DEVICE_PM_LOW_POWER_STATE){
+            printf("ERROR: Power mode should be DEVICE_PM_LOW_POWER_STATE\n");
+        }
+        else{
+            printf("GOOD: Power mode is DEVICE_PM_LOW_POWER_STATE\n");
+        }
+
+	    printf("15 seconds power-down state\n");
+        k_sleep(15000);
+        printf("Switch device to active state\n");
+        ret = device_set_power_state(flash_dev, DEVICE_PM_ACTIVE_STATE);
+        if (ret){
+            printf("ERROR: Couldn't set active state\n");
+        }
+        ret = device_get_power_state(flash_dev, &pm_state);
+        if (ret || pm_state != DEVICE_PM_ACTIVE_STATE){
+            printf("ERROR: Power mode should be DEVICE_PM_ACTIVE_STATE\n");
+        }
+        else{
+            printf("GOOD: Power mode is DEVICE_PM_ACTIVE_STATE\n");
+        }
+	}
 }

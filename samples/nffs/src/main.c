@@ -17,7 +17,6 @@
 #include <fs.h>
 #include <init.h>
 #include <device.h>
-#include <power.h>
 #include <stdio.h>
 
 /**
@@ -32,7 +31,7 @@
  *
  * Set to '0' to disable writes. Reads may fail if no files are written before.
  */
-#define WRITE_TO_FILE           1
+#define WRITE_TO_FILE           0
 /**
  * @brief Switch determines whether files are read.
  *
@@ -348,27 +347,6 @@ void main(void) {
 
     printf("End of application\n");
 
-    /*while(1){
-        k_sleep(1000);
-    }*/
-
-    printf("\n");
-    struct device *flash_dev = device_get_binding(
-                CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME);
-    ret = device_set_power_state(flash_dev, DEVICE_PM_LOW_POWER_STATE);
-
-    k_sleep(10000);
-
-    ret = device_set_power_state(flash_dev, DEVICE_PM_ACTIVE_STATE);
-
-    k_sleep(10000);
-
-    ret = device_set_power_state(flash_dev, DEVICE_PM_LOW_POWER_STATE);
-
-    while(1){
-        k_sleep(1000);
-    }
-
     return;
 }
 
@@ -376,10 +354,9 @@ void main(void) {
  * @brief Erases Flash device before NFFS initialization if #ERASE_DEVICE is set
  */
 static int nffs_sample_flash_erase(struct device *dev) {
-    struct device *flash_dev = device_get_binding(
-                    CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME);
-    int ret = device_set_power_state(flash_dev, DEVICE_PM_ACTIVE_STATE);
     if (ERASE_DEVICE) {
+        struct device *flash_dev = device_get_binding(
+                CONFIG_SPI_FLASH_W25QXXXX_DRV_NAME);
         flash_write_protection_set(flash_dev, false);
         flash_erase(flash_dev, 0, CONFIG_SPI_FLASH_W25QXXXX_FLASH_SIZE);
     }
