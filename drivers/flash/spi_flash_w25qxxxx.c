@@ -595,7 +595,11 @@ static int spi_flash_init(struct device *dev)
 	// Send resume command to start in defined state
 	u8_t cmd = W25QXXXX_CMD_RDP;
 	ret = spi_flash_wb_reg_write(dev, &cmd);
+	if (ret){
+	    return ret;
+	}
 
+	// Device ID fetch will also validate device power state.
 	ret = spi_flash_wb_config(dev);
 	if (!ret) {
 		dev->driver_api = &spi_flash_api;
