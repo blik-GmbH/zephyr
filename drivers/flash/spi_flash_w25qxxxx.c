@@ -491,7 +491,7 @@ static int spi_flash_wb_erase(struct device *dev, off_t offset, size_t size)
  * The information is used by file systems to determine formatting and when to
  * erase what.
  *
- * @param dev Flash device struct
+ * @param dev Flash device struct pointer
  * @param layout Pointer to an array of #flash_pages_layout descriptor structs
  * @param layout_size Pointer to a variable holding the size of the Pages
  * Layout Table
@@ -506,6 +506,22 @@ void spi_flash_wb_page_layout(struct device *dev,
     return;
 }
 
+/**
+ * @brief Power mode control function for Winbond Flash device
+ *
+ * Puts the Flash device in low-power mode or back into active state.
+ *
+ * @param dev Flash device struct pointer
+ * @param command Command to execute, either `DEVICE_PM_GET_POWER_STATE` or
+ * `DEVICE_PM_SET_POWER_STATE`
+ * @param context Pointer to context data. Current power state for command
+ * `DEVICE_PM_GET_POWER_STATE`, power state to set for command
+ * `DEVICE_PM_SET_POWER_STATE`
+ *
+ * @return 0 on success, <0 otherwise
+ * @retval -EFAULT if offset or (offset + len) out of memory address bounds
+ * @retval -EIO SPI transaction failed
+ */
 static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, void *context){
     static u32_t pm_state = DEVICE_PM_ACTIVE_STATE;
 
