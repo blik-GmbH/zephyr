@@ -1,0 +1,12 @@
+sample:
+  description: nanopb for zephyr
+    application
+  name: nanopb
+  platforms: all
+common:
+    tags: samples
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "nanopb (.*)"
