@@ -1,6 +1,6 @@
 tests:
   test_basic:
-    platform_whitelist: qemu_x86
+    platform_whitelist: qemu_x86 akita_gen2_devboard
     tags: nffs fs
   test_cache:
     extra_args: TEST=cache
