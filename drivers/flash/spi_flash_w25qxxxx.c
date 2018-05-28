@@ -19,7 +19,6 @@
 #include <device.h>
 #include <init.h>
 #include <string.h>
-#include <stdio.h>
 #include "spi_flash_w25qxxxx_defs.h"
 #include "spi_flash_w25qxxxx.h"
 #include "flash_priv.h"
@@ -508,30 +507,11 @@ void spi_flash_wb_page_layout(struct device *dev,
 }
 
 static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, void *context){
-    /**
-     * command =
-     * - DEVICE_PM_SET_POWER_STATE
-     * - DEVICE_PM_GET_POWER_STATE
-     */
-    /**
-     * - u32_t device_pm_state = *(u32_t *)context (set power state)
-     * - *(u32_t *)context = device_pm_state (get power state)
-     */
-    /**
-     * device_pm_state =
-     * - DEVICE_PM_ACTIVE_STATE
-     * - DEVICE_PM_LOW_POWER_STATE
-     * - DEVICE_PM_SUSPEND_STATE
-     * - DEVICE_PM_OFF_STATE
-     */
     static u32_t pm_state = DEVICE_PM_ACTIVE_STATE;
 
     int rc = 0;
-    //u32_t cmd = *(u32_t *)command;
     u32_t req_pm_state = 0;
     u8_t flash_cmd = 0;
-
-    printf("SPI Flash PM Control\n");
 
     if (command == DEVICE_PM_GET_POWER_STATE) {
         *(u32_t *)context = pm_state;
@@ -541,16 +521,39 @@ static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, vo
 
         switch (req_pm_state) {
             case DEVICE_PM_ACTIVE_STATE:
-                // activate device
-                flash_cmd = W25QXXXX_CMD_RDP;
-                rc = spi_flash_wb_reg_write(dev, &flash_cmd);
+                if (pm_state != req_pm_state){
+                    // activate device
+                    flash_cmd = W25QXXXX_CMD_RDP;
+                    rc = spi_flash_wb_reg_write(dev, &flash_cmd);
+                    if (rc){
+                        return rc;
+                    }
+                }
+                // request device ID to check whether device is in active state
+                rc = spi_flash_wb_id(dev);
+                if (rc){
+                    return rc;
+                }
+                pm_state = DEVICE_PM_ACTIVE_STATE;
                 break;
             case DEVICE_PM_LOW_POWER_STATE:
             case DEVICE_PM_SUSPEND_STATE:
             case DEVICE_PM_OFF_STATE:
-                // power down device
-                flash_cmd = W25QXXXX_CMD_DP;
-                rc = spi_flash_wb_reg_write(dev, &flash_cmd);
+                if ((pm_state != DEVICE_PM_LOW_POWER_STATE) && (pm_state != req_pm_state)){
+                    // power down device
+                    flash_cmd = W25QXXXX_CMD_DP;
+                    rc = spi_flash_wb_reg_write(dev, &flash_cmd);
+                    if (rc){
+                        return rc;
+                    }
+                }
+                // request device ID to check whether device is in power-down
+                // state. ID request MUST FAIL in power-down state.
+                rc = spi_flash_wb_id(dev);
+                if (!rc){
+                    return -EFAULT;
+                }
+                pm_state = DEVICE_PM_LOW_POWER_STATE;
                 break;
             default:
                 return -ENOTSUP;
@@ -560,7 +563,7 @@ static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command, vo
         return -ENOSYS;
     }
 
-    return rc;
+    return 0;
 }
 
 static const struct flash_driver_api spi_flash_api = {
@@ -589,6 +592,7 @@ static int spi_flash_init(struct device *dev)
 
 	k_sem_init(&data->sem, 1, UINT_MAX);
 
+	// Send resume command to start in defined state
 	u8_t cmd = W25QXXXX_CMD_RDP;
 	ret = spi_flash_wb_reg_write(dev, &cmd);
 
