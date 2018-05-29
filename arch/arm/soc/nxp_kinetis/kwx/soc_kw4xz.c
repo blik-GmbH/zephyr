@@ -114,8 +114,27 @@ static int kwx_init(struct device *arg)
 
 	/* Configure or disable the watchdog */
 #if defined(CONFIG_WATCHDOG)
+#if defined(CONFIG_WDT_MKW4XZ_32MS)
+	/* 1kHz LPC clock, 2^5 cycles = 32ms */
+    SIM->COPC = SIM_COPC_COPCLKSEL(00) | SIM_COPC_COPCLKS(0) | SIM_COPC_COPT(01);
+#elif defined(CONFIG_WDT_MKW4XZ_256MS)
+    /* 1kHz LPC clock, 2^8 cycles = 256ms */
+    SIM->COPC = SIM_COPC_COPCLKSEL(00) | SIM_COPC_COPCLKS(0) | SIM_COPC_COPT(10);
+#elif defined(CONFIG_WDT_MKW4XZ_1024MS)
+    /* 1kHz LPC clock, 2^10 cycles = 1024ms */
+    SIM->COPC = SIM_COPC_COPCLKSEL(00) | SIM_COPC_COPCLKS(0) | SIM_COPC_COPT(11);
+#elif defined(CONFIG_WDT_MKW4XZ_8192MS)
 	/* 1kHz LPC clock, 2^13 cycles = 8192ms */
 	SIM->COPC = SIM_COPC_COPCLKSEL(00) | SIM_COPC_COPCLKS(1) | SIM_COPC_COPT(01);
+#elif defined(CONFIG_WDT_MKW4XZ_65536MS)
+    /* 1kHz LPC clock, 2^16 cycles = 65536ms */
+    SIM->COPC = SIM_COPC_COPCLKSEL(00) | SIM_COPC_COPCLKS(1) | SIM_COPC_COPT(10);
+#elif defined(CONFIG_WDT_MKW4XZ_262144MS)
+    /* 1kHz LPC clock, 2^18 cycles = 262144ms */
+    SIM->COPC = SIM_COPC_COPCLKSEL(00) | SIM_COPC_COPCLKS(1) | SIM_COPC_COPT(11);
+#else
+#error "Unknown Watchdog Timer timeout period"
+#endif
 #else
 	SIM->COPC = 0;
 #endif
