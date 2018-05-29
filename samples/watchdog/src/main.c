@@ -38,8 +38,10 @@
  * in order to reload the Watchdog Timer.
  */
 #if defined(CONFIG_WATCHDOG)
-#define WDT_RELOAD()        SIM->SRVCOP = SIM_SRVCOP_SRVCOP(0x55); \
-                            SIM->SRVCOP = SIM_SRVCOP_SRVCOP(0xAA)
+#define WDT_RELOAD()    do { \
+    SIM->SRVCOP = SIM_SRVCOP_SRVCOP(0x55); \
+    SIM->SRVCOP = SIM_SRVCOP_SRVCOP(0xAA); \
+} while(0)
 #else
 #define WDT_RELOAD()
 #endif
