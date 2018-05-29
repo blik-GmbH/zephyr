@@ -18,4 +18,4 @@ SET(PROTO_SRCS  "${PROTO_SRCS}" CACHE INTERNAL "PROTO_SRCS")
 SET(PROTO_HDRS  "${PROTO_HDRS}" CACHE INTERNAL "PROTO_HDRS")
 
 # Create target and let it depend on generating the sources first
-add_custom_target(blik DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
+add_custom_target(blik SOURCES ${PROTO_SRCS} ${PROTO_HDRS})
