@@ -1,0 +1,25 @@
+# Kconfig - NXP Kinetis KWx WDT configuration
+#
+# Copyright (c) 2018 blik GmbH
+# SPDX-License-Identifier: Apache-2.0
+
+choice WDT_MKW4XZ
+	bool
+	depends on SOC_PART_NUMBER_MKW41Z512VHT4
+	prompt "MKW41Z Watchdog Timer Timeout Setting"
+	config WDT_MKW4XZ_32MS
+		bool "32 ms"
+	config WDT_MKW4XZ_256MS
+		bool "256 ms"
+	config WDT_MKW4XZ_1024MS
+		bool "1024 ms"
+	config WDT_MKW4XZ_8192MS
+		bool "8192 ms"
+	config WDT_MKW4XZ_65536MS
+		bool "65536 ms"
+	config WDT_MKW4XZ_262144MS
+		bool "262144 ms"
+	help
+	  The Kinetis MKW4xZ Watchdog Timer can be configured once at power-up.
+		The timeout period must therefore be pre-selected here.
+endchoice
