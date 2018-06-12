@@ -510,14 +510,19 @@ void spi_flash_wb_page_layout(struct device *dev,
 /**
  * @brief Power mode control function for Winbond Flash device
  *
- * Puts the Flash device in low-power mode or back into active state.
+ * Puts the Flash device in power-down mode or back into active state.
+ * In power-down mode the W25Q Flash devices have reduced power consumption and
+ * will only react to the _release power-down_ instruction (0xAB).
  *
  * @param dev Flash device struct pointer
  * @param command Command to execute, either `DEVICE_PM_GET_POWER_STATE` or
  * `DEVICE_PM_SET_POWER_STATE`
- * @param context Pointer to context data. Current power state for command
- * `DEVICE_PM_GET_POWER_STATE`, power state to set for command
- * `DEVICE_PM_SET_POWER_STATE`
+ * @param context Pointer to context data. Function will return current power
+ * state through this pointer if #command is `DEVICE_PM_GET_POWER_STATE`.
+ * User should set requested power state if #command is
+ * `DEVICE_PM_SET_POWER_STATE`.
+ * `void*` pointer is internally casted to `u32_t*` for both get and set
+ * command.
  *
  * @return 0 on success, <0 otherwise
  * @retval -EFAULT if offset or (offset + len) out of memory address bounds
@@ -537,17 +542,18 @@ static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command,
 	} else if (command == DEVICE_PM_SET_POWER_STATE) {
 		req_pm_state = *(u32_t *) context;
 
+		/* Power mode state machine */
 		switch (req_pm_state) {
 		case DEVICE_PM_ACTIVE_STATE:
 			if (pm_state != req_pm_state) {
-				// activate device
+				/* activate device */
 				flash_cmd = W25QXXXX_CMD_RDP;
 				rc = spi_flash_wb_reg_write(dev, &flash_cmd);
 				if (rc) {
 					return rc;
 				}
 			}
-			// request device ID to check whether device is in active state
+			/* request device ID to check whether device is in active state */
 			rc = spi_flash_wb_id(dev);
 			if (rc) {
 				return rc;
@@ -557,17 +563,23 @@ static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command,
 		case DEVICE_PM_LOW_POWER_STATE:
 		case DEVICE_PM_SUSPEND_STATE:
 		case DEVICE_PM_OFF_STATE:
+			/*
+			 * covers all low-power states that the API offers with the Flash
+			 * device's power-down mode.
+			 */
 			if ((pm_state != DEVICE_PM_LOW_POWER_STATE)
 					&& (pm_state != req_pm_state)) {
-				// power down device
+				/* power down device */
 				flash_cmd = W25QXXXX_CMD_DP;
 				rc = spi_flash_wb_reg_write(dev, &flash_cmd);
 				if (rc) {
 					return rc;
 				}
 			}
-			// request device ID to check whether device is in power-down
-			// state. ID request MUST FAIL in power-down state.
+			/*
+			 * request device ID to check whether device is in power-down
+			 * state. ID request MUST FAIL in power-down state.
+			 */
 			rc = spi_flash_wb_id(dev);
 			if (!rc) {
 				return -EFAULT;
