@@ -485,6 +485,7 @@ static int spi_flash_wb_erase(struct device *dev, off_t offset, size_t size)
 	return ret;
 }
 
+#if defined(CONFIG_FLASH_PAGE_LAYOUT)
 /**
  * @brief Creates Flash Pages Layout Table
  *
@@ -506,6 +507,7 @@ void spi_flash_wb_page_layout(struct device *dev,
 
 	return;
 }
+#endif
 
 /**
  * @brief Power mode control function for Winbond Flash device
