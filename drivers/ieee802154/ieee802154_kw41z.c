@@ -844,11 +844,22 @@ static inline u8_t *get_mac(struct device *dev)
 	 *       and how to allow for a OUI portion?
 	 */
 
+#if CONFIG_IEEE802154_KW41Z_MAC_RANDOM
 	u32_t *ptr = (u32_t *)(kw41z->mac_addr);
 
 	UNALIGNED_PUT(sys_rand32_get(), ptr);
 	ptr = (u32_t *)(kw41z->mac_addr + 4);
 	UNALIGNED_PUT(sys_rand32_get(), ptr);
+#else
+	const u32_t mac_msb = RSIM->MAC_MSB;
+	const u32_t mac_lsb = RSIM->MAC_LSB;
+	u64_t mac = (u64_t) mac_msb << 32 | mac_lsb;
+
+	/* Does expect big endianess for the mac */
+	mac = sys_cpu_to_be64(mac);
+        memcpy(kw41z->mac_addr, &mac, sizeof(mac));
+
+#endif
 
 	/*
 	 * Clear bit 0 to ensure it isn't a multicast address and set
