@@ -28,6 +28,12 @@ config IEEE802154_KW41Z_INIT_PRIO
 	  Set the initialization priority number. Do not change it unless
 	  you know what you are doing. It has to start before the net stack.
 
+config IEEE802154_KW41Z_MAC_RANDOM
+	bool "Use random MAC address"
+	default y
+	help
+	  Use a random MAC address instead of the built-in unique one
+
 config KW41_DBG_TRACE
 	bool "Enabled simplified debug tracing of events"
 	default n
