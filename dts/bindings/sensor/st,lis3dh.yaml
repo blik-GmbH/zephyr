@@ -1,0 +1,21 @@
+#
+# Copyright (c) 2018, blik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+title: STMicroelectronics MEMS sensors LIS3DH
+id: st,lis3dh
+version: 0.1
+
+description: >
+    This binding gives a base representation of LIS3DH magnetometer
+
+inherits:
+    !include i2c-device.yaml
+
+properties:
+    compatible:
+      constraint: "st,lis3dh"
+
+...
