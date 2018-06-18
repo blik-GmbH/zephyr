@@ -39,6 +39,7 @@ image: ${CI_REGISTRY}/blik/embedded/zephyr:latest
 before_script:
   - echo "${PWD}"
   - source ./zephyr-env.sh
+  - source ~/.gitlintrc
 
 ################################################################################
 #                                  JOBS                                        #
