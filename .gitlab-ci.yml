@@ -65,7 +65,11 @@ codestyle:
     - git diff origin/dev > branch.patch
     - ./scripts/checkpatch.pl branch.patch
 
-
+# Akita Gen 2 Application Pipeline trigger
+# The application pipeline gets triggered for every patch that is pushed to
+# feature branch in the Zephyr repository.
+# Thus, every patch is tested with respect to whether the application still
+# builds with the patch applied.
 trigger_build:
   stage: deploy
   script:
