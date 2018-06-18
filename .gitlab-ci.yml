@@ -21,12 +21,12 @@
 # Find introductory information about GitLab CI at the following link:
 # https://gitlab.com/help/ci/quick_start/README
 
-# Use the akita_gen2:latest Docker image from the blik-private Container
+# Use the zephyr:latest Docker image from the blik-private Container
 # Registry within GitLab.
 # Find more at https://gitlab.com/help/user/project/container_registry.
 # This image comes with the entire Zephyr OS toolchain and the Zephyr OS
 # repository pre-installed.
-# image: ${CI_REGISTRY}/blik/embedded/akita_gen2:latest
+image: ${CI_REGISTRY}/blik/embedded/zephyr:latest
 
 # Runner option to clone submodules recursively, i.e. Zephyr for akita_gen2.
 #variables:
