@@ -62,5 +62,5 @@ gitlint:
 # warnings.
 codestyle:
   script:
-    - git diff dev > branch.patch
+    - git diff origin/dev > branch.patch
     - ./scripts/checkpatch.pl branch.patch
