@@ -527,8 +527,11 @@ void spi_flash_wb_page_layout(struct device *dev,
  * command.
  *
  * @return 0 on success, <0 otherwise
- * @retval -EFAULT if offset or (offset + len) out of memory address bounds
- * @retval -EIO SPI transaction failed
+ * @retval -EIO SPI transaction failed or Flash device is not in expected
+ * power state
+ * @retval -ENOTSUP if an unknown power state is requested
+ * @retval -ENOSYS if command is neither `DEVICE_PM_GET_POWER_STATE` nor
+ * `DEVICE_PM_SET_POWER_STATE`
  */
 static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command,
 		void *context)
@@ -583,8 +586,8 @@ static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command,
 			 * state. ID request MUST FAIL in power-down state.
 			 */
 			rc = spi_flash_wb_id(dev);
-			if (!rc) {
-				return -EFAULT;
+			if (rc == 0) {
+				return -EIO;
 			}
 			pm_state = DEVICE_PM_LOW_POWER_STATE;
 			break;
