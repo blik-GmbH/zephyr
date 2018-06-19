@@ -17,9 +17,13 @@
 # MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 # This is the Gitlab Continuous Integration (CI) configuration for blik's
-# Sensor Unit application based on Zephyr OS.
+# fork of Zephyr OS.
 # Find introductory information about GitLab CI at the following link:
 # https://gitlab.com/help/ci/quick_start/README
+# The CI-related instructions at
+# https://gitlab.com/blik/embedded/akita_gen2#continuous-integration-ci-setup
+# generally also apply to the Zephyr OS repository.
+# Just replace `akita_gen2` with `zephyr` at any occurrence.
 
 # Use the zephyr:latest Docker image from the blik-private Container
 # Registry within GitLab.
