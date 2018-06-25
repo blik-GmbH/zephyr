@@ -1,0 +1,82 @@
+# MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+# MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM0kOWMMMMMMMMMMMMMMMMMMMMMMMM
+# MMMMkddd0MMMMMMMMMMMMMMXddddWMMl...,MMMkdddXMMMMMMMMMMMMMMMM
+# MMMM;...oMMMMMMMMMMMMMM0....NMM0:,;kMMM,...kMMMMMMMMMMMMMMMM
+# MMMM;...oMMMMMMMMMMMMMM0....NMMMMMMMMMM,...kMMMMMMMMMMMMMMMM
+# MMMM;...oMMMWNWMMMMMMMM0....NMMMMMMMMMM,...kMMMMMMMMMMMMMMMM
+# MMMM;...:c,.....;oKMMMM0....NMMd...cMMM,...kMMMMXl...'xWMMMM
+# MMMM;......;::,....cWMM0....NMMo...:MMM,...kMMXl....oNMMMMMM
+# MMMM;....kMMMMMX,...cMM0....NMMo...:MMM,...kNo....oNMMMMMMMM
+# MMMM;...cMMMMMMM0....XM0....NMMo...:MMM,...;....lNMMMMMMMMMM
+# MMMM;...oMMMMMMMN....OM0....NMMo...:MMM,........kMMMMMMMMMMM
+# MMMM;...cMMMMMMMK....KM0....NMMo...:MMM,...,d'...:XMMMMMMMMM
+# MMMM;....XMMMMMW:...;MM0....NMMo...:MMM,...kMWl....dWMMMMMMM
+# MMMM;.....:oddl'...,XMM0....NMMo...:MMM,...kMMM0,...,0MMMMMM
+# MMMM;...l'.......;xWMMM0....NMMo...:MMM,...kMMMMWo....lWMMMM
+# MMMMXKKKMMX0OOOKNMMMMMMWKKKKMMMNKKKXMMMXKKKWMMMMMMXKKKKNMMMM
+# MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+
+# This is the Gitlab Continuous Integration (CI) configuration for blik's
+# fork of Zephyr OS.
+# Find introductory information about GitLab CI at the following link:
+# https://gitlab.com/help/ci/quick_start/README
+# The CI-related instructions at
+# https://gitlab.com/blik/embedded/akita_gen2#continuous-integration-ci-setup
+# generally also apply to the Zephyr OS repository.
+# Just replace `akita_gen2` with `zephyr` at any occurrence.
+
+# Use the zephyr:latest Docker image from the blik-private Container
+# Registry within GitLab.
+# Find more at https://gitlab.com/help/user/project/container_registry.
+# This image comes with the entire Zephyr OS toolchain and the Zephyr OS
+# repository pre-installed.
+image: ${CI_REGISTRY}/blik/embedded/zephyr:latest
+
+# Runner option to clone submodules recursively, i.e. Zephyr for akita_gen2.
+#variables:
+#  GIT_SUBMODULE_STRATEGY: recursive
+  #  GIT_DEPTH: "100"
+
+# Todos before execution of the job scripts
+# * Set environment variables for the Zephyr toolchain
+# * Set environment variables for the gitlint tool
+before_script:
+  - echo "${PWD}"
+  - source ./zephyr-env.sh
+  - source ~/.gitlintrc
+
+################################################################################
+#                                  JOBS                                        #
+################################################################################
+
+# Git Linting
+# It is a tool that checks the semantics of all Git commit messages from the
+# branch-off point off the dev branch up to the latest commit against
+# a set of rules, say you have defined certain formatting within your team.
+# The rules are typically defined in the `.gitlint` file in a repository's
+# root directory.
+# If no `.gitlint` file is present, a default set of rules is applied.
+gitlint:
+  script:
+    - gitlint --commits "$(git merge-base --fork-point dev)..."
+
+# Codestyle parsing
+# This uses Zephyr's own checkpatch script to check against the diff down to the
+# dev branch. Any conflicts must be resolved. It is recommended, to also resolve
+# warnings.
+codestyle:
+  script:
+    - git diff origin/dev > branch.patch
+    - ./scripts/checkpatch.pl branch.patch
+
+# Akita Gen 2 Application Pipeline trigger
+# The application pipeline gets triggered for every patch that is pushed to
+# feature branch in the Zephyr repository.
+# Thus, every patch is tested with respect to whether the application still
+# builds with the patch applied.
+trigger_build:
+  stage: deploy
+  script:
+    - curl --request POST --form token=c892a18fc9f9ba45bf92ea9f81e559 --form ref=dev https://gitlab.com/api/v4/projects/5905102/trigger/pipeline
+  only:
+    - /^dev$/
