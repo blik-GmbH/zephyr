@@ -78,3 +78,5 @@ trigger_build:
   stage: deploy
   script:
     - curl --request POST --form token=c892a18fc9f9ba45bf92ea9f81e559 --form ref=dev https://gitlab.com/api/v4/projects/5905102/trigger/pipeline
+  only:
+    - /^dev$/
