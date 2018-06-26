@@ -138,4 +138,18 @@ config FXOS8700_DRDY_INT1
 
 endif # FXOS8700
 
+
+if LIS3DH
+
+config LIS3DH_GPIO_NAME
+	default GPIO_MCUX_PORTC_NAME
+
+config LIS3DH_INT1_GPIO_PIN
+	default 4
+
+config LIS3DH_INT2_GPIO_PIN
+	default 5
+
+endif # LIS3DH
+
 endif # BOARD_FRDM_KW41Z

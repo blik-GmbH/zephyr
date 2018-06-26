@@ -38,6 +38,12 @@
 		reg = <0x1f>;
 		label = "FXOS8700";
 	};
+
+	lis3dh@18 {
+		compatible = "st,lis3dh";
+		reg = <0x18>;
+		label = "LIS3DH";
+	};
 };
 
 &lpuart0 {
