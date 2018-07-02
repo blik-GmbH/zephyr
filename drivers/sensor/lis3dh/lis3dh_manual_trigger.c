@@ -96,28 +96,6 @@ static int lis3dh_start_trigger_int1(const struct lis3dh_data *lis3dh)
 				   (1 << LIS3DH_EN_DRDY1_INT1_SHIFT));
 }
 
-
-static int lis3dh_trigger_anym_set(struct device *dev,
-				   sensor_trigger_handler_t handler)
-{
-	struct lis3dh_data *lis3dh = dev->driver_data;
-
-	gpio_pin_disable_callback(lis3dh->gpio, CONFIG_LIS3DH_INT2_GPIO_PIN);
-
-	lis3dh->handler_anymotion = handler;
-
-	/* serialize start of int2 in thread to synchronize output sampling
-	 * and first interrupt. this avoids concurrent bus context access.
-	 */
-	atomic_set_bit(&lis3dh->trig_flags, START_TRIG_INT2);
-#if defined(CONFIG_LIS3DH_TRIGGER_OWN_THREAD)
-	k_sem_give(&lis3dh->gpio_sem);
-#elif defined(CONFIG_LIS3DH_TRIGGER_GLOBAL_THREAD) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
-	k_work_submit(&lis3dh->work);
-#endif
-	return 0;
-}
-
 #define LIS3DH_EN_INT2_CFG (GPIO_DIR_IN | GPIO_INT |	  \
                             GPIO_INT_LEVEL | GPIO_INT_ACTIVE_HIGH |	  \
                             GPIO_INT_DEBOUNCE)
@@ -190,6 +168,24 @@ static int lis3dh_start_trigger_int2(const struct lis3dh_data *lis3dh)
 
 	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
 				  LIS3DH_REG_INT2_CFG, LIS3DH_ANYM_CFG);
+}
+
+static int lis3dh_trigger_anym_set(struct device *dev,
+				   sensor_trigger_handler_t handler)
+{
+	struct lis3dh_data *lis3dh = dev->driver_data;
+
+	gpio_pin_disable_callback(lis3dh->gpio, CONFIG_LIS3DH_INT2_GPIO_PIN);
+
+	lis3dh->handler_anymotion = handler;
+
+	int status = lis3dh_start_trigger_int2(lis3dh);
+
+	if (unlikely(status < 0)) {
+		SYS_LOG_ERR("lis3dh_start_trigger_int2: %d", status);
+	}
+
+	return 0;
 }
 
 int lis3dh_trigger_set(struct device *dev,
@@ -306,16 +302,6 @@ static void lis3dh_thread_cb(void *arg)
 
 		if (unlikely(status < 0)) {
 			SYS_LOG_ERR("lis3dh_start_trigger_int1: %d", status);
-		}
-		return;
-	}
-
-	if (unlikely(atomic_test_and_clear_bit(&lis3dh->trig_flags,
-					       START_TRIG_INT2))) {
-		int status = lis3dh_start_trigger_int2(lis3dh);
-
-		if (unlikely(status < 0)) {
-			SYS_LOG_ERR("lis3dh_start_trigger_int2: %d", status);
 		}
 		return;
 	}
