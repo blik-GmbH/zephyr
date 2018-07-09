@@ -164,6 +164,7 @@ static int lis3dh_start_trigger_int2(const struct lis3dh_data *lis3dh)
 
 	if (unlikely(status < 0)) {
 		SYS_LOG_ERR("Could not set the gpio configuration, %d", status);
+		return status;
 	}
 
 	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
@@ -183,6 +184,7 @@ static int lis3dh_trigger_anym_set(struct device *dev,
 
 	if (unlikely(status < 0)) {
 		SYS_LOG_ERR("lis3dh_start_trigger_int2: %d", status);
+		return status;
 	}
 
 	return 0;
