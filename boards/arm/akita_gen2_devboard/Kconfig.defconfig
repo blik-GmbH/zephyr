@@ -84,6 +84,8 @@ endif # ADC
 
 
 if FLASH
+	config SPI
+		def_bool y
 	config SPI_1
 		def_bool y
 	config SPI_MCUX_DSPI
@@ -95,7 +97,7 @@ if FLASH
 	choice SPI_FLASH_W25QXXXX_DEVICE
 		default SPI_FLASH_W25QXXXX_DEVICE_W25QXXFW
 	endchoice
-	config CONFIG_SPI_FLASH_W25QXXXX_SPI_FREQ_0
+	config SPI_FLASH_W25QXXXX_SPI_FREQ_0
 		default 500000
 	config SPI_FLASH_W25QXXXX_SPI_SLAVE
 		default 0
