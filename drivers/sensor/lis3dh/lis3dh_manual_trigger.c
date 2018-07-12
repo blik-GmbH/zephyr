@@ -17,6 +17,9 @@
 #define TRIGGED_INT1			BIT(4)
 #define TRIGGED_INT2			BIT(5)
 
+#define LIS3DH_ANYM_CFG (LIS3DH_6D_CFG | LIS3DH_INT_CFG_ZHIE_ZUPE | \
+		LIS3DH_INT_CFG_YHIE_YUPE | LIS3DH_INT_CFG_XHIE_XUPE)
+
 static int lis3dh_trigger_drdy_set(struct device *dev, enum sensor_channel chan,
 				   sensor_trigger_handler_t handler)
 {
@@ -147,47 +150,26 @@ static int lis3dh_disable_gpio_int2(const struct lis3dh_data *lis3dh)
 	return 0;
 }
 
-#define LIS3DH_ANYM_CFG (LIS3DH_6D_CFG | LIS3DH_INT_CFG_ZHIE_ZUPE |	  \
-                         LIS3DH_INT_CFG_YHIE_YUPE | LIS3DH_INT_CFG_XHIE_XUPE)
-static int lis3dh_start_trigger_int2(const struct lis3dh_data *lis3dh)
-{
-	int status;
-
-	/* Setting the handler to NULL will disable the interrupt so
-	 * that you can sleep */
-	if (lis3dh->handler_anymotion == NULL){
-		status = lis3dh_disable_gpio_int2(lis3dh);
-	}
-	else {
-		status = lis3dh_enable_gpio_int2(lis3dh);
-	}
-
-	if (unlikely(status < 0)) {
-		SYS_LOG_ERR("Could not set the gpio configuration, %d", status);
-		return status;
-	}
-
-	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
-				  LIS3DH_REG_INT2_CFG, LIS3DH_ANYM_CFG);
-}
-
 static int lis3dh_trigger_anym_set(struct device *dev,
 				   sensor_trigger_handler_t handler)
 {
 	struct lis3dh_data *lis3dh = dev->driver_data;
+	int status;
 
 	gpio_pin_disable_callback(lis3dh->gpio, CONFIG_LIS3DH_INT2_GPIO_PIN);
 
 	lis3dh->handler_anymotion = handler;
 
-	int status = lis3dh_start_trigger_int2(lis3dh);
-
-	if (unlikely(status < 0)) {
-		SYS_LOG_ERR("lis3dh_start_trigger_int2: %d", status);
-		return status;
+	/* Setting the handler to NULL will disable the interrupt so
+	 * that no interrupt wakes up the SoC
+	 */
+	if (lis3dh->handler_anymotion == NULL) {
+		status = lis3dh_disable_gpio_int2(lis3dh);
+	} else {
+		status = lis3dh_enable_gpio_int2(lis3dh);
 	}
 
-	return 0;
+	return status;
 }
 
 int lis3dh_trigger_set(struct device *dev,
@@ -475,6 +457,14 @@ int lis3dh_init_interrupt(struct device *dev)
 
 
 	/* enable interrupt 2 on int2 line */
-	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
+	status = i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
 	                          LIS3DH_REG_CTRL6, LIS3DH_EN_ANYM_INT2);
+	if (status < 0) {
+		SYS_LOG_ERR("INT2 enable failed (%d)", status);
+		return status;
+	}
+
+	/* configure interrupt mode for int2*/
+	return i2c_reg_write_byte(lis3dh->i2c, LIS3DH_I2C_ADDRESS,
+				  LIS3DH_REG_INT2_CFG, LIS3DH_ANYM_CFG);
 }
