@@ -58,7 +58,7 @@ before_script:
 # If no `.gitlint` file is present, a default set of rules is applied.
 gitlint:
   script:
-    - gitlint --commits "$(git merge-base --fork-point dev)..."
+    - gitlint --commits "$(git merge-base --fork-point origin/dev)..."
 
 # Codestyle parsing
 # This uses Zephyr's own checkpatch script to check against the diff down to the
