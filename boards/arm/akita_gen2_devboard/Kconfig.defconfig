@@ -7,6 +7,9 @@
 
 if BOARD_AKITA_GEN2_DEVBOARD
 
+config BLIK_RADIO
+	def_bool y
+
 config BOARD
 	default akita_gen2_devboard
 

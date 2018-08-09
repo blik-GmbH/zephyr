@@ -83,12 +83,16 @@ if NETWORKING
 config NET_L2_IEEE802154
         def_bool y
 
+endif # NETWORKING
+
+if NETWORKING || BLIK_RADIO
+
 config IEEE802154_KW41Z
         def_bool y
 
 config NET_APP_IEEE802154_DEV_NAME
         default IEEE802154_KW41Z_DRV_NAME
 
-endif # NETWORKING
+endif # NETWORKING || BLIK_RADIO
 
 endif # SOC_MKW41Z4
