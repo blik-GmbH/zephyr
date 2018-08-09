@@ -475,7 +475,7 @@ static u8_t kw41z_convert_lqi(u8_t hw_lqi)
 
 #if defined(CONFIG_BLIK_RADIO)
 
-static inline struct net_buf_simple* blik_rx(struct device *dev, u32_t timeout)
+static inline struct net_buf_simple *blik_rx(struct device *dev, u32_t timeout)
 {
 	return k_fifo_get(&kw41z_rx_queue, timeout);
 }
@@ -499,8 +499,6 @@ static inline void kw41z_rx(struct kw41z_context *kw41z, u8_t len)
 	}
 
 	k_fifo_put(&kw41z_rx_queue, &frag);
-
-	return;
 }
 
 static int kw41z_tx(struct device *dev, struct net_buf_simple *frag)

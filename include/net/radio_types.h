@@ -27,7 +27,6 @@ struct ieee802154_filter {
 
 struct radio_api {
 	/** A fifo for the driver to write RX packages into */
-	//struct k_fifo *rx_queue;
 	struct net_buf_simple* (*rx)(struct device *dev, u32_t timeout);
 
 	/** Get the device capabilities */
