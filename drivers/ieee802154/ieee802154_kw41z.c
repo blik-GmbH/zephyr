@@ -1098,8 +1098,8 @@ DEVICE_DEFINE(
 	kw41z_pm_control,                   /* Power Management Func */
 	&kw41z_context_data,                /* Context data */
 	NULL,                               /* Configuration info */
-	POST_KERNEL,
-	CONFIG_IEEE802154_KW41Z_INIT_PRIO,  /* Initial priority */
+	POST_KERNEL,                        /* Init Level */
+	CONFIG_IEEE802154_KW41Z_INIT_PRIO,  /* Init priority */
 	&kw41z_radio_api);             /* API interface functions */
 #else /* CONFIG_BLIK_RADIO */
 static int kw41z_init(struct device *dev)
