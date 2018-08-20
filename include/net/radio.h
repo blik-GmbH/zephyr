@@ -28,14 +28,14 @@ __syscall enum ieee802154_hw_caps radio_get_capabilities(
 static inline enum ieee802154_hw_caps radio_get_capabilities(
 		struct device *dev)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->get_capabilities(dev);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return 0;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return 0;
+	return api->get_capabilities(dev);
 }
 
 /** Transmit a packet fragment */
@@ -44,14 +44,14 @@ __syscall int radio_send(struct device *dev, struct net_buf_simple *frag);
 static inline int radio_send(struct device *dev,
 		struct net_buf_simple *frag)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->tx(dev, frag);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return -EFAULT;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return -EFAULT;
+	return api->tx(dev, frag);
 }
 
 /** A fifo for the driver to write RX packages into */
@@ -61,15 +61,15 @@ __syscall struct net_buf_simple *radio_recv(struct device *dev,
 static inline struct net_buf_simple *radio_recv(struct device *dev,
 		u32_t timeout)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		/* k_fifo_get returns pointer to a net_pkt object */
-		return api->rx(dev, timeout);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return NULL;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return NULL;
+	/* k_fifo_get returns pointer to a net_pkt object */
+	return api->rx(dev, timeout);
 }
 
 /** Clear Channel Assesment - Check channel's activity */
@@ -77,14 +77,14 @@ __syscall int radio_cca(struct device *dev);
 
 static inline int radio_cca(struct device *dev)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->cca(dev);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return -EFAULT;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return -EFAULT;
+	return api->cca(dev);
 }
 
 /** Set current channel */
@@ -92,14 +92,14 @@ __syscall int radio_set_channel(struct device *dev, u16_t channel);
 
 static inline int radio_set_channel(struct device *dev, u16_t channel)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->set_channel(dev, channel);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return -EFAULT;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return -EFAULT;
+	return api->set_channel(dev, channel);
 }
 
 /** Set address filters (for IEEE802154_HW_FILTER ) */
@@ -111,14 +111,14 @@ static inline int radio_set_filter(struct device *dev,
 		  enum ieee802154_filter_type type,
 		  const struct ieee802154_filter *filter)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->set_filter(dev, type, filter);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return -EFAULT;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return -EFAULT;
+	return api->set_filter(dev, type, filter);
 }
 
 /** Set TX power level in dbm */
@@ -126,14 +126,14 @@ __syscall int radio_set_txpower(struct device *dev, s16_t dbm);
 
 static inline int radio_set_txpower(struct device *dev, s16_t dbm)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->set_txpower(dev, dbm);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return -EFAULT;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return -EFAULT;
+	return api->set_txpower(dev, dbm);
 }
 
 /** Start the device */
@@ -141,14 +141,14 @@ __syscall int radio_start(struct device *dev);
 
 static inline int radio_start(struct device *dev)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->start(dev);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return -EFAULT;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return -EFAULT;
+	return api->start(dev);
 }
 
 /** Stop the device */
@@ -156,14 +156,14 @@ __syscall int radio_stop(struct device *dev);
 
 static inline int radio_stop(struct device *dev)
 {
-	struct radio_api *api = dev->driver_api;
+	const struct radio_api *api = dev->driver_api;
 
-	if (api) {
-		return api->stop(dev);
+	if (api == NULL) {
+		SYS_LOG_ERR("Could not bind to device API.");
+		return -EFAULT;
 	}
 
-	SYS_LOG_ERR("Could not bind to device API.");
-	return -EFAULT;
+	return api->stop(dev);
 }
 
 #ifdef __cplusplus
