@@ -33,9 +33,9 @@
 &i2c1 {
 	status = "ok";
 
-	lis3dh@18 {
+	lis3dh@19 {
 		compatible = "st,lis3dh";
-		reg = <0x18>;
+		reg = <0x19>;
 		label = "LIS3DH";
 	};
 };
