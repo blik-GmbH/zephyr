@@ -963,145 +963,6 @@ static int kw41z_pm_control(struct device *dev, u32_t command, void *context)
 	return -ENOTSUP;
 }
 
-#if defined(CONFIG_BLIK_RADIO)
-static int kw41z_blik_init(struct device *dev)
-{
-	struct kw41z_context *kw41z = dev->driver_data;
-	xcvrStatus_t xcvrStatus;
-
-	xcvrStatus = XCVR_Init(ZIGBEE_MODE, DR_500KBPS);
-	if (xcvrStatus != gXcvrSuccess_c) {
-		return -EIO;
-	}
-
-	/* Disable all timers, enable AUTOACK, mask all interrupts */
-	ZLL->PHY_CTRL = ZLL_PHY_CTRL_CCATYPE(KW41Z_CCA_MODE1)	|
-			ZLL_PHY_CTRL_CRC_MSK_MASK		|
-			ZLL_PHY_CTRL_PLL_UNLOCK_MSK_MASK	|
-			/*ZLL_PHY_CTRL_FILTERFAIL_MSK_MASK	|*/
-			ZLL_PHY_CTRL_RX_WMRK_MSK_MASK	|
-			ZLL_PHY_CTRL_CCAMSK_MASK		|
-			ZLL_PHY_CTRL_RXMSK_MASK			|
-			ZLL_PHY_CTRL_TXMSK_MASK			|
-			ZLL_PHY_CTRL_SEQMSK_MASK;
-
-#if CONFIG_SOC_MKW41Z4
-	ZLL->PHY_CTRL |= ZLL_IRQSTS_WAKE_IRQ_MASK;
-#endif
-
-#if KW41Z_AUTOACK_ENABLED
-	ZLL->PHY_CTRL |= ZLL_PHY_CTRL_AUTOACK_MASK;
-#endif
-
-	/*
-	 * Clear all PP IRQ bits to avoid unexpected interrupts immediately
-	 * after init disable all timer interrupts
-	 */
-	ZLL->IRQSTS = ZLL->IRQSTS;
-
-	/* Clear HW indirect queue */
-	ZLL->SAM_TABLE |= ZLL_SAM_TABLE_INVALIDATE_ALL_MASK;
-
-	/* Accept FrameVersion 0 and 1 packets, reject all others */
-	ZLL->PHY_CTRL &= ~ZLL_PHY_CTRL_PROMISCUOUS_MASK;
-	ZLL->RX_FRAME_FILTER &= ~ZLL_RX_FRAME_FILTER_FRM_VER_FILTER_MASK;
-	ZLL->RX_FRAME_FILTER = ZLL_RX_FRAME_FILTER_FRM_VER_FILTER(3)	|
-			       ZLL_RX_FRAME_FILTER_CMD_FT_MASK		|
-			       ZLL_RX_FRAME_FILTER_DATA_FT_MASK		|
-			       ZLL_RX_FRAME_FILTER_BEACON_FT_MASK;
-
-	/* Set prescaller to obtain 1 symbol (16us) timebase */
-	ZLL->TMR_PRESCALE = 0x05;
-
-	kw41z_tmr3_disable();
-
-	/* Compute warmup times (scaled to 16us) */
-	kw41z->rx_warmup_time = (XCVR_TSM->END_OF_SEQ &
-				 XCVR_TSM_END_OF_SEQ_END_OF_RX_WU_MASK) >>
-				XCVR_TSM_END_OF_SEQ_END_OF_RX_WU_SHIFT;
-	kw41z->tx_warmup_time = (XCVR_TSM->END_OF_SEQ &
-				 XCVR_TSM_END_OF_SEQ_END_OF_TX_WU_MASK) >>
-				XCVR_TSM_END_OF_SEQ_END_OF_TX_WU_SHIFT;
-
-	if (kw41z->rx_warmup_time & 0x0F) {
-		kw41z->rx_warmup_time = 1 + (kw41z->rx_warmup_time >> 4);
-	} else {
-		kw41z->rx_warmup_time = kw41z->rx_warmup_time >> 4;
-	}
-
-	if (kw41z->tx_warmup_time & 0x0F) {
-		kw41z->tx_warmup_time = 1 + (kw41z->tx_warmup_time >> 4);
-	} else {
-		kw41z->tx_warmup_time = kw41z->tx_warmup_time >> 4;
-	}
-
-	/* Set CCA threshold to -75 dBm */
-	ZLL->CCA_LQI_CTRL &= ~ZLL_CCA_LQI_CTRL_CCA1_THRESH_MASK;
-	ZLL->CCA_LQI_CTRL |= ZLL_CCA_LQI_CTRL_CCA1_THRESH(0xB5);
-
-	/* Set the default power level */
-	kw41z_set_txpower(dev, 0);
-
-	/* Adjust ACK delay to fulfill the 802.15.4 turnaround requirements */
-	ZLL->ACKDELAY &= ~ZLL_ACKDELAY_ACKDELAY_MASK;
-	ZLL->ACKDELAY |= ZLL_ACKDELAY_ACKDELAY(-8);
-
-	/* Adjust LQI compensation */
-	ZLL->CCA_LQI_CTRL &= ~ZLL_CCA_LQI_CTRL_LQI_OFFSET_COMP_MASK;
-	ZLL->CCA_LQI_CTRL |= ZLL_CCA_LQI_CTRL_LQI_OFFSET_COMP(96);
-
-	/* Enable the RxWatermark IRQ  */
-	ZLL->PHY_CTRL &= ~(ZLL_PHY_CTRL_RX_WMRK_MSK_MASK);
-	/* Set Rx watermark level */
-	ZLL->RX_WTR_MARK = 0;
-
-
-	/* Set default channel to 2405 MHZ */
-	kw41z_set_channel(dev, KW41Z_DEFAULT_CHANNEL);
-
-	/* Unmask Transceiver Global Interrupts */
-	ZLL->PHY_CTRL &= ~ZLL_PHY_CTRL_TRCV_MSK_MASK;
-
-	k_fifo_init(&kw41z_rx_queue);
-	/* Configure Radio IRQ */
-	NVIC_ClearPendingIRQ(Radio_1_IRQn);
-	IRQ_CONNECT(Radio_1_IRQn, RADIO_0_IRQ_PRIO, kw41z_isr, 0, 0);
-
-	/* Set mac in the device context */
-	u8_t *mac = get_mac(dev);
-
-#if defined(CONFIG_KW41_DBG_TRACE)
-	kw41_dbg_idx = 0;
-#endif
-
-	return 0;
-}
-
-static struct radio_api kw41z_radio_api = {
-	.get_capabilities	= kw41z_get_capabilities,
-	.set_channel		= kw41z_set_channel,
-	.set_filter		= kw41z_set_filter,
-	.set_txpower		= kw41z_set_txpower,
-
-	.start			= kw41z_start,
-	.stop			= kw41z_stop,
-
-	.cca			= kw41z_cca,
-	.tx			= kw41z_tx,
-	.rx			= blik_rx,
-};
-
-DEVICE_DEFINE(
-	kw41z,                              /* Device Name */
-	CONFIG_IEEE802154_KW41Z_DRV_NAME,   /* Driver Name */
-	kw41z_blik_init,                    /* Initialization Function */
-	kw41z_pm_control,                   /* Power Management Func */
-	&kw41z_context_data,                /* Context data */
-	NULL,                               /* Configuration info */
-	POST_KERNEL,                        /* Init Level */
-	CONFIG_IEEE802154_KW41Z_INIT_PRIO,  /* Init priority */
-	&kw41z_radio_api);             /* API interface functions */
-#else /* CONFIG_BLIK_RADIO */
 static int kw41z_init(struct device *dev)
 {
 	struct kw41z_context *kw41z = dev->driver_data;
@@ -1206,6 +1067,54 @@ static int kw41z_init(struct device *dev)
 
 	return 0;
 }
+
+#if defined(CONFIG_BLIK_RADIO)
+static int kw41z_blik_init(struct device *dev)
+{
+	int ret = 0;
+
+	ret = kw41z_init();
+	if (ret < 0) {
+		return ret;
+	}
+
+	k_fifo_init(&kw41z_rx_queue);
+
+	/* Set mac in the device context */
+	u8_t *mac = get_mac(dev);
+
+#if defined(CONFIG_KW41_DBG_TRACE)
+	kw41_dbg_idx = 0;
+#endif
+
+	return 0;
+}
+
+static struct radio_api kw41z_radio_api = {
+	.get_capabilities	= kw41z_get_capabilities,
+	.set_channel		= kw41z_set_channel,
+	.set_filter		= kw41z_set_filter,
+	.set_txpower		= kw41z_set_txpower,
+
+	.start			= kw41z_start,
+	.stop			= kw41z_stop,
+
+	.cca			= kw41z_cca,
+	.tx			= kw41z_tx,
+	.rx			= blik_rx,
+};
+
+DEVICE_DEFINE(
+	kw41z,                              /* Device Name */
+	CONFIG_IEEE802154_KW41Z_DRV_NAME,   /* Driver Name */
+	kw41z_blik_init,                    /* Initialization Function */
+	kw41z_pm_control,                   /* Power Management Func */
+	&kw41z_context_data,                /* Context data */
+	NULL,                               /* Configuration info */
+	POST_KERNEL,                        /* Init Level */
+	CONFIG_IEEE802154_KW41Z_INIT_PRIO,  /* Init priority */
+	&kw41z_radio_api);             /* API interface functions */
+#else /* CONFIG_BLIK_RADIO */
 
 static void kw41z_iface_init(struct net_if *iface)
 {
