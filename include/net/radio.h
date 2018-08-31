@@ -21,11 +21,17 @@
 extern "C" {
 #endif
 
-/** Get the device capabilities */
+/*
+ * @brief Get bitmask of supported radio features
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ *
+ * @return Bitmask of supported radio features
+ */
 __syscall enum ieee802154_hw_caps radio_get_capabilities(
 		struct device *dev);
 
-static inline enum ieee802154_hw_caps radio_get_capabilities(
+static inline enum ieee802154_hw_caps _impl_radio_get_capabilities(
 		struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
@@ -38,10 +44,20 @@ static inline enum ieee802154_hw_caps radio_get_capabilities(
 	return api->get_capabilities(dev);
 }
 
-/** Transmit a packet fragment */
+/*
+ * @brief Transmit a data fragment
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ * @param frag Pointer to net_buf_simple data struct of the data to be sent
+ *
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
+ */
 __syscall int radio_send(struct device *dev, struct net_buf_simple *frag);
 
-static inline int radio_send(struct device *dev,
+static inline int _impl_radio_send(struct device *dev,
 		struct net_buf_simple *frag)
 {
 	const struct radio_api *api = dev->driver_api;
@@ -54,11 +70,19 @@ static inline int radio_send(struct device *dev,
 	return api->tx(dev, frag);
 }
 
-/** A fifo for the driver to write RX packages into */
+/*
+ * @brief Query the radio driver's RX queue for one new packet
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ * @param timeout Timeout value to wait for a packet to arrive in the RX queue
+ *
+ * @retval ANY Pointer to net_buf_simple on success
+ * @retval NULL
+ */
 __syscall struct net_buf_simple *radio_recv(struct device *dev,
 		u32_t timeout);
 
-static inline struct net_buf_simple *radio_recv(struct device *dev,
+static inline struct net_buf_simple *_impl_radio_recv(struct device *dev,
 		u32_t timeout)
 {
 	const struct radio_api *api = dev->driver_api;
@@ -72,10 +96,19 @@ static inline struct net_buf_simple *radio_recv(struct device *dev,
 	return api->rx(dev, timeout);
 }
 
-/** Clear Channel Assesment - Check channel's activity */
+/*
+ * @brief Check the radio channels activity with CCA
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ *
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
+ */
 __syscall int radio_cca(struct device *dev);
 
-static inline int radio_cca(struct device *dev)
+static inline int _impl_radio_cca(struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -87,10 +120,20 @@ static inline int radio_cca(struct device *dev)
 	return api->cca(dev);
 }
 
-/** Set current channel */
+/*
+ * @brief Set radio channel
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ * @param channel Valid channel number for the radio
+ *
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
+ */
 __syscall int radio_set_channel(struct device *dev, u16_t channel);
 
-static inline int radio_set_channel(struct device *dev, u16_t channel)
+static inline int _impl_radio_set_channel(struct device *dev, u16_t channel)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -102,12 +145,21 @@ static inline int radio_set_channel(struct device *dev, u16_t channel)
 	return api->set_channel(dev, channel);
 }
 
-/** Set address filters (for IEEE802154_HW_FILTER ) */
+/*
+ * @brief Set the address filters (for IEEE802154_HW_FILTER)
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ *
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
+ */
 __syscall int radio_set_filter(struct device *dev,
 		  enum ieee802154_filter_type type,
 		  const struct ieee802154_filter *filter);
 
-static inline int radio_set_filter(struct device *dev,
+static inline int _impl_radio_set_filter(struct device *dev,
 		  enum ieee802154_filter_type type,
 		  const struct ieee802154_filter *filter)
 {
@@ -121,10 +173,20 @@ static inline int radio_set_filter(struct device *dev,
 	return api->set_filter(dev, type, filter);
 }
 
-/** Set TX power level in dbm */
+/*
+ * @brief Set the TX power level in dbm
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ * @param dbm Valid power level for the radio
+ *
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
+ */
 __syscall int radio_set_txpower(struct device *dev, s16_t dbm);
 
-static inline int radio_set_txpower(struct device *dev, s16_t dbm)
+static inline int _impl_radio_set_txpower(struct device *dev, s16_t dbm)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -136,10 +198,19 @@ static inline int radio_set_txpower(struct device *dev, s16_t dbm)
 	return api->set_txpower(dev, dbm);
 }
 
-/** Start the device */
+/*
+ * @brief Start the radio
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ *
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
+ */
 __syscall int radio_start(struct device *dev);
 
-static inline int radio_start(struct device *dev)
+static inline int _impl_radio_start(struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -151,10 +222,19 @@ static inline int radio_start(struct device *dev)
 	return api->start(dev);
 }
 
-/** Stop the device */
+/*
+ * @brief Stop the radio
+ *
+ * @param dev Pointer to the device structure for the driver instance
+ *
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
+ */
 __syscall int radio_stop(struct device *dev);
 
-static inline int radio_stop(struct device *dev)
+static inline int _impl_radio_stop(struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
 
