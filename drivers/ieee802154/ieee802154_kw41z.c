@@ -532,7 +532,10 @@ static int kw41z_tx(struct device *dev, struct net_buf_simple *frag)
 	/* Clear all IRQ flags */
 	ZLL->IRQSTS = ZLL->IRQSTS;
 
-	/* Current Zephyr 802.15.4 stack doesn't support ACK offload */
+	/*
+	 * Current Zephyr 802.15.4 stack doesn't support ACK offload
+	 * We removed KW41Z_AUTOACK_ENABLED here, and add it back if necessary
+	 */
 	ZLL->PHY_CTRL &= ~ZLL_PHY_CTRL_RXACKRQD_MASK;
 	kw41z_set_seq_state(KW41Z_STATE_TX);
 
