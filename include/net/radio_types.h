@@ -1,4 +1,5 @@
 #pragma once
+#include <net/buf.h>
 enum ieee802154_hw_caps {
 	IEEE802154_HW_FCS	= BIT(0), /* Frame Check-Sum supported */
 	IEEE802154_HW_PROMISC	= BIT(1), /* Promiscuous mode supported */
@@ -26,8 +27,9 @@ struct ieee802154_filter {
 };
 
 struct radio_api {
-	/** A fifo for the driver to write RX packages into */
-	struct net_buf_simple* (*rx)(struct device *dev, u32_t timeout);
+	/** Fetch one data element from the RX ringbuffer */
+	int (*rx)(struct device *dev, u8_t *data, u8_t *data_len,
+			u32_t timeout);
 
 	/** Get the device capabilities */
 	enum ieee802154_hw_caps (*get_capabilities)(struct device *dev);

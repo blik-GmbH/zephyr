@@ -28,10 +28,7 @@ extern "C" {
  *
  * @return Bitmask of supported radio features
  */
-__syscall enum ieee802154_hw_caps radio_get_capabilities(
-		struct device *dev);
-
-static inline enum ieee802154_hw_caps _impl_radio_get_capabilities(
+static inline enum ieee802154_hw_caps radio_get_capabilities(
 		struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
@@ -55,9 +52,7 @@ static inline enum ieee802154_hw_caps _impl_radio_get_capabilities(
  * @retval -EFAULT Driver API could not be bound
  * @retval <0 otherwise
  */
-__syscall int radio_send(struct device *dev, struct net_buf_simple *frag);
-
-static inline int _impl_radio_send(struct device *dev,
+static inline int radio_send(struct device *dev,
 		struct net_buf_simple *frag)
 {
 	const struct radio_api *api = dev->driver_api;
@@ -76,24 +71,23 @@ static inline int _impl_radio_send(struct device *dev,
  * @param dev Pointer to the device structure for the driver instance
  * @param timeout Timeout value to wait for a packet to arrive in the RX queue
  *
- * @retval ANY Pointer to net_buf_simple on success
- * @retval NULL
+ * @return ERRNO type values
+ * @retval 0 on success
+ * @retval -EFAULT Driver API could not be bound
+ * @retval <0 otherwise
  */
-__syscall struct net_buf_simple *radio_recv(struct device *dev,
-		u32_t timeout);
-
-static inline struct net_buf_simple *_impl_radio_recv(struct device *dev,
-		u32_t timeout)
+static inline int radio_recv(struct device *dev, u8_t *data,
+		u8_t *data_len, u32_t timeout_ms)
 {
 	const struct radio_api *api = dev->driver_api;
 
 	if (api == NULL) {
 		SYS_LOG_ERR("Could not bind to device API.");
-		return NULL;
+		return -EFAULT;
 	}
 
 	/* k_fifo_get returns pointer to a net_pkt object */
-	return api->rx(dev, timeout);
+	return api->rx(dev, data, data_len, timeout_ms);
 }
 
 /*
@@ -106,9 +100,7 @@ static inline struct net_buf_simple *_impl_radio_recv(struct device *dev,
  * @retval -EFAULT Driver API could not be bound
  * @retval <0 otherwise
  */
-__syscall int radio_cca(struct device *dev);
-
-static inline int _impl_radio_cca(struct device *dev)
+static inline int radio_cca(struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -131,9 +123,7 @@ static inline int _impl_radio_cca(struct device *dev)
  * @retval -EFAULT Driver API could not be bound
  * @retval <0 otherwise
  */
-__syscall int radio_set_channel(struct device *dev, u16_t channel);
-
-static inline int _impl_radio_set_channel(struct device *dev, u16_t channel)
+static inline int radio_set_channel(struct device *dev, u16_t channel)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -155,11 +145,7 @@ static inline int _impl_radio_set_channel(struct device *dev, u16_t channel)
  * @retval -EFAULT Driver API could not be bound
  * @retval <0 otherwise
  */
-__syscall int radio_set_filter(struct device *dev,
-		  enum ieee802154_filter_type type,
-		  const struct ieee802154_filter *filter);
-
-static inline int _impl_radio_set_filter(struct device *dev,
+static inline int radio_set_filter(struct device *dev,
 		  enum ieee802154_filter_type type,
 		  const struct ieee802154_filter *filter)
 {
@@ -184,9 +170,7 @@ static inline int _impl_radio_set_filter(struct device *dev,
  * @retval -EFAULT Driver API could not be bound
  * @retval <0 otherwise
  */
-__syscall int radio_set_txpower(struct device *dev, s16_t dbm);
-
-static inline int _impl_radio_set_txpower(struct device *dev, s16_t dbm)
+static inline int radio_set_txpower(struct device *dev, s16_t dbm)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -208,9 +192,7 @@ static inline int _impl_radio_set_txpower(struct device *dev, s16_t dbm)
  * @retval -EFAULT Driver API could not be bound
  * @retval <0 otherwise
  */
-__syscall int radio_start(struct device *dev);
-
-static inline int _impl_radio_start(struct device *dev)
+static inline int radio_start(struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
 
@@ -232,9 +214,7 @@ static inline int _impl_radio_start(struct device *dev)
  * @retval -EFAULT Driver API could not be bound
  * @retval <0 otherwise
  */
-__syscall int radio_stop(struct device *dev);
-
-static inline int _impl_radio_stop(struct device *dev)
+static inline int radio_stop(struct device *dev)
 {
 	const struct radio_api *api = dev->driver_api;
 

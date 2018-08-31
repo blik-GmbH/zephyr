@@ -22,6 +22,7 @@
 #if defined(CONFIG_BLIK_RADIO)
 	#include <net/radio_types.h>
 	#include <net/buf.h>
+	#include <ring_buffer.h>
 #else
 	#include <net/ieee802154_radio.h>
 	#include <net/net_pkt.h>
@@ -137,7 +138,8 @@ static const u8_t pa_pwr_lt[22] = {
 
 #if defined(CONFIG_BLIK_RADIO)
 #define NET_BUF_RX_SIZE 256
-static struct k_fifo kw41z_rx_queue;
+/* (2^8 = 256) 32bit words = (256 * 4) = 1024 byte */
+SYS_RING_BUF_DECLARE_POW2(rx_ring, 8);
 #endif /* CONFIG_BLIK_RADIO */
 
 struct kw41z_context {
@@ -476,13 +478,36 @@ static u8_t kw41z_convert_lqi(u8_t hw_lqi)
 
 #if defined(CONFIG_BLIK_RADIO)
 
-static inline struct net_buf_simple *blik_rx(struct device *dev, u32_t timeout)
+static int blik_rx(struct device *dev, u8_t *data, u8_t *data_len,
+		u32_t timeout_ms)
 {
-	return k_fifo_get(&kw41z_rx_queue, timeout);
+	int ret = 0;
+	u16_t type = 0;
+	u8_t value = 0;
+	u8_t size32 = 0;
+
+	/* split the timeout into 10 cycles with timebase 100us */
+	u8_t timeout_count = 10;
+	u32_t timeout_cycle_us = 100 * timeout_ms;
+
+	do {
+		ret = sys_ring_buf_get(&rx_ring, &type, &value, (u32_t *)data,
+				&size32);
+		if (ret == 0 || ret == -EMSGSIZE) {
+			break;
+		}
+
+		k_busy_wait(timeout_cycle_us);
+	} while (timeout_count-- > 0);
+
+	*data_len = size32*4;
+	return ret;
 }
 
 static inline void kw41z_rx(struct kw41z_context *kw41z, u8_t len)
 {
+	int ret = 0;
+
 	NET_BUF_SIMPLE_DEFINE_STATIC(frag, NET_BUF_RX_SIZE);
 
 	SYS_LOG_DBG("ENTRY: len: %d", len);
@@ -499,7 +524,14 @@ static inline void kw41z_rx(struct kw41z_context *kw41z, u8_t len)
 		}
 	}
 
-	k_fifo_put(&kw41z_rx_queue, &frag);
+	u8_t frag_size32_rem = frag.len % 4 ? 1 : 0;
+
+	u8_t frag_size32 = (frag.len >> 2) + frag_size32_rem;
+
+	ret = sys_ring_buf_put(&rx_ring, 0, 0, (u32_t *)frag.data, frag_size32);
+	if (ret < 0) {
+		SYS_LOG_ERR("package dropped, insufficient memory (%i)", ret);
+	}
 }
 
 static int kw41z_tx(struct device *dev, struct net_buf_simple *frag)
@@ -1077,12 +1109,10 @@ static int kw41z_blik_init(struct device *dev)
 {
 	int ret = 0;
 
-	ret = kw41z_init();
+	ret = kw41z_init(dev);
 	if (ret < 0) {
 		return ret;
 	}
-
-	k_fifo_init(&kw41z_rx_queue);
 
 	/* Set mac in the device context */
 	u8_t *mac = get_mac(dev);
