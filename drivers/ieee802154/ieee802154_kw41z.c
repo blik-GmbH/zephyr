@@ -136,6 +136,7 @@ static const u8_t pa_pwr_lt[22] = {
 };
 
 #if defined(CONFIG_BLIK_RADIO)
+#define NET_BUF_RX_SIZE 256
 static struct k_fifo kw41z_rx_queue;
 #endif /* CONFIG_BLIK_RADIO */
 
@@ -482,7 +483,7 @@ static inline struct net_buf_simple *blik_rx(struct device *dev, u32_t timeout)
 
 static inline void kw41z_rx(struct kw41z_context *kw41z, u8_t len)
 {
-	NET_BUF_SIMPLE_DEFINE_STATIC(frag, 256);
+	NET_BUF_SIMPLE_DEFINE_STATIC(frag, NET_BUF_RX_SIZE);
 
 	SYS_LOG_DBG("ENTRY: len: %d", len);
 
