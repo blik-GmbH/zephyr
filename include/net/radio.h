@@ -86,7 +86,6 @@ static inline int radio_recv(struct device *dev, u8_t *data,
 		return -EFAULT;
 	}
 
-	/* k_fifo_get returns pointer to a net_pkt object */
 	return api->rx(dev, data, data_len, timeout_ms);
 }
 
