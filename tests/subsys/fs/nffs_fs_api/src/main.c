@@ -6,6 +6,8 @@
 
 #include <nffs/nffs.h>
 #include "test_nffs.h"
+#include <device.h>
+#include <power.h>
 
 #if CONFIG_BOARD_QEMU_X86
 static struct nffs_area_desc nffs_selftest_area_descs[] = {
@@ -23,7 +25,7 @@ static struct nffs_area_desc nffs_selftest_area_descs[] = {
 	{ 0x000e0000, 128 * 1024 },
 	{ 0, 0 },
 };
-#elif CONFIG_BOARD_AKITA_GEN2_DEVBOARD
+#elif defined(CONFIG_BOARD_AKITA_GEN2_DEVBOARD) || defined(CONFIG_BOARD_AKITA_GEN2)
 static struct nffs_area_desc nffs_selftest_area_descs[] = {
     { 0x00000000, 4096 },
     { 0x00001000, 4096 },
@@ -72,6 +74,18 @@ static void test_teardown(void)
 
 void test_main(void)
 {
+	struct device *dev = device_get_binding(CONFIG_FS_NFFS_FLASH_DEV_NAME);
+	if (dev == NULL) {
+		SYS_LOG_ERR("device not found");
+		return;
+	}
+
+	SYS_LOG_DBG("set power state");
+	int ret = device_set_power_state(dev, DEVICE_PM_ACTIVE_STATE);
+	if (ret < 0) {
+		SYS_LOG_ERR("unable to set power state");
+		return;
+	}
 #ifdef TEST_basic
 	ztest_test_suite(nffs_fs_basic_test,
 		ztest_unit_test_setup_teardown(test_unlink,
@@ -143,4 +157,12 @@ void test_main(void)
 					       test_setup, test_teardown));
 	ztest_run_test_suite(nffs_fs_performace_test);
 #endif
+}
+
+int _sys_soc_suspend(s32_t ticks) {
+	return 0;
+}
+
+void _sys_soc_resume(void) {
+	return;
 }

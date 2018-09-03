@@ -33,6 +33,12 @@ elseif(BOARD STREQUAL akita_gen2_devboard)
         -DFLASH_AREA_NFFS_OFFSET=0
         -DFLASH_AREA_NFFS_SIZE=4096
     )
+elseif(BOARD STREQUAL akita_gen2)
+    zephyr_compile_definitions(
+        -DTEST_FLASH_OFFSET=0
+        -DFLASH_AREA_NFFS_OFFSET=0
+        -DFLASH_AREA_NFFS_SIZE=4096
+    )
 endif()
 
 if(NOT TEST)
