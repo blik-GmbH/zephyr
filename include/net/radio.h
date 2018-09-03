@@ -69,6 +69,8 @@ static inline int radio_send(struct device *dev,
  * @brief Query the radio driver's RX queue for one new packet
  *
  * @param dev Pointer to the device structure for the driver instance
+ * @param data Pointer to memory to write received data into
+ * @param data_len Pointer to memory to write length of received data into
  * @param timeout Timeout value to wait for a packet to arrive in the RX queue
  *
  * @return ERRNO type values
