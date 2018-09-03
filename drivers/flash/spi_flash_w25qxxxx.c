@@ -12,6 +12,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define SYS_LOG_LEVEL CONFIG_SYS_LOG_DEFAULT_LEVEL
+#define SYS_LOG_DOMAIN "w25qxx"
+#include <logging/sys_log.h>
+
 #include <errno.h>
 
 #include <flash.h>
