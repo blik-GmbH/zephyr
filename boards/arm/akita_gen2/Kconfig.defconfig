@@ -73,7 +73,7 @@ endif # ADC
 if SPI
 
 config SPI_0
-	def_bool n
+	def_bool y
 
 config SPI_0_IRQ_PRI
 	default 10

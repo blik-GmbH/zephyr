@@ -35,7 +35,8 @@
 /*
  * This should fit the largest area used in test (128K).
  */
-#if CONFIG_BOARD_AKITA_GEN2_DEVBOARD
+#if defined(CONFIG_BOARD_AKITA_GEN2_DEVBOARD) || \
+	defined(CONFIG_BOARD_AKITA_GEN2)
 #define AREA_BUF_MAX_SIZE (24 * 1024)
 #else
 #define AREA_BUF_MAX_SIZE (128 * 1024)

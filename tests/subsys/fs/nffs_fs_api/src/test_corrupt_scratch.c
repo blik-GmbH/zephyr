@@ -34,7 +34,8 @@ void test_corrupt_scratch(void)
 	int scratch_id;
 	int rc;
 
-#if CONFIG_BOARD_AKITA_GEN2_DEVBOARD
+#if defined(CONFIG_BOARD_AKITA_GEN2_DEVBOARD) || \
+	defined(CONFIG_BOARD_AKITA_GEN2)
 	static const struct nffs_area_desc area_descs_two[] = {
         { 0x00001000, 4096 },
         { 0x00002000, 4096 },
