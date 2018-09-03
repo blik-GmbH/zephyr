@@ -10,6 +10,7 @@ menuconfig  IEEE802154_KW41Z
 	bool "NXP KW41Z Driver support"
 	depends on NETWORKING
 	select NEWLIB_LIBC
+	select RING_BUFFER
 	default n
 
 if IEEE802154_KW41Z

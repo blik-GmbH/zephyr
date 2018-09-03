@@ -16,11 +16,18 @@
 #include <device.h>
 #include <init.h>
 #include <irq.h>
-#include <net/ieee802154_radio.h>
-#include <net/net_if.h>
-#include <net/net_pkt.h>
 #include <misc/byteorder.h>
 #include <random/rand32.h>
+
+#if defined(CONFIG_BLIK_RADIO)
+	#include <net/radio_types.h>
+	#include <net/buf.h>
+	#include <ring_buffer.h>
+#else
+	#include <net/ieee802154_radio.h>
+	#include <net/net_pkt.h>
+	#include <net/net_if.h>
+#endif
 
 #include "fsl_xcvr.h"
 
@@ -129,8 +136,16 @@ static const u8_t pa_pwr_lt[22] = {
 	24			/* 2 dBm */
 };
 
+#if defined(CONFIG_BLIK_RADIO)
+#define NET_BUF_RX_SIZE 256
+/* (2^8 = 256) 32bit words = (256 * 4) = 1024 byte */
+SYS_RING_BUF_DECLARE_POW2(rx_ring, 8);
+#endif /* CONFIG_BLIK_RADIO */
+
 struct kw41z_context {
+	#if !defined(CONFIG_BLIK_RADIO)
 	struct net_if *iface;
+	#endif
 	u8_t mac_addr[8];
 
 	struct k_sem seq_sync;
@@ -461,6 +476,112 @@ static u8_t kw41z_convert_lqi(u8_t hw_lqi)
 	}
 }
 
+#if defined(CONFIG_BLIK_RADIO)
+
+static int blik_rx(struct device *dev, u8_t *data, u8_t *data_len,
+		u32_t timeout_ms)
+{
+	int ret = 0;
+	u16_t type = 0;
+	u8_t value = 0;
+	u8_t size32 = 0;
+
+	/* split the timeout into 10 cycles with timebase 100us */
+	u8_t timeout_count = 10;
+	u32_t timeout_cycle_us = 100 * timeout_ms;
+
+	do {
+		ret = sys_ring_buf_get(&rx_ring, &type, &value, (u32_t *)data,
+				&size32);
+		if (ret == 0 || ret == -EMSGSIZE) {
+			break;
+		}
+
+		k_busy_wait(timeout_cycle_us);
+	} while (timeout_count-- > 0);
+
+	*data_len = size32*4;
+	return ret;
+}
+
+static inline void kw41z_rx(struct kw41z_context *kw41z, u8_t len)
+{
+	int ret = 0;
+
+	NET_BUF_SIMPLE_DEFINE_STATIC(frag, NET_BUF_RX_SIZE);
+
+	SYS_LOG_DBG("ENTRY: len: %d", len);
+
+	frag.len = len - KW41Z_FCS_LENGTH;
+
+	/* PKT_BUFFER_RX needs to be accessed aligned to 16 bits */
+	for (u16_t reg_val = 0, i = 0; i < frag.len; i++) {
+		if (i % 2 == 0) {
+			reg_val = ZLL->PKT_BUFFER_RX[i/2];
+			frag.data[i] = reg_val & 0xFF;
+		} else {
+			frag.data[i] = reg_val >> 8;
+		}
+	}
+
+	u8_t frag_size32_rem = frag.len % 4 ? 1 : 0;
+
+	u8_t frag_size32 = (frag.len >> 2) + frag_size32_rem;
+
+	ret = sys_ring_buf_put(&rx_ring, 0, 0, (u32_t *)frag.data, frag_size32);
+	if (ret < 0) {
+		SYS_LOG_ERR("package dropped, insufficient memory (%i)", ret);
+	}
+}
+
+static int kw41z_tx(struct device *dev, struct net_buf_simple *frag)
+{
+	struct kw41z_context *kw41z = dev->driver_data;
+	u8_t payload_len = frag->len;
+
+	/*
+	 * The transmit requests are preceded by the CCA request. On
+	 * completion of the CCA the sequencer should be in the IDLE
+	 * state.
+	 */
+	if (kw41z_get_seq_state() != KW41Z_STATE_IDLE) {
+		SYS_LOG_WRN("Can't initiate new SEQ state");
+		return -EBUSY;
+	}
+
+	if (payload_len > KW41Z_PSDU_LENGTH) {
+		SYS_LOG_ERR("Payload too long");
+		return 0;
+	}
+
+	((u8_t *)ZLL->PKT_BUFFER_TX)[0] = payload_len + KW41Z_FCS_LENGTH;
+	memcpy(((u8_t *)ZLL->PKT_BUFFER_TX) + 1,
+		(void *)(frag->data), payload_len);
+
+	/* Set CCA mode */
+	ZLL->PHY_CTRL = (ZLL->PHY_CTRL & ~ZLL_PHY_CTRL_CCATYPE_MASK) |
+			ZLL_PHY_CTRL_CCATYPE(KW41Z_CCA_MODE1);
+
+	/* Clear all IRQ flags */
+	ZLL->IRQSTS = ZLL->IRQSTS;
+
+	/*
+	 * Current Zephyr 802.15.4 stack doesn't support ACK offload
+	 * We removed KW41Z_AUTOACK_ENABLED here, and add it back if necessary
+	 */
+	ZLL->PHY_CTRL &= ~ZLL_PHY_CTRL_RXACKRQD_MASK;
+	kw41z_set_seq_state(KW41Z_STATE_TX);
+
+	kw41z_enable_seq_irq();
+
+	k_sem_take(&kw41z->seq_sync, K_FOREVER);
+
+	SYS_LOG_DBG("seq_retval: %d", kw41z->seq_retval);
+	return kw41z->seq_retval;
+}
+
+#else /* CONFIG_BLIK_RADIO */
+
 static inline void kw41z_rx(struct kw41z_context *kw41z, u8_t len)
 {
 	struct net_pkt *pkt = NULL;
@@ -617,6 +738,8 @@ static int kw41z_tx(struct device *dev, struct net_pkt *pkt,
 	SYS_LOG_DBG("seq_retval: %d", kw41z->seq_retval);
 	return kw41z->seq_retval;
 }
+
+#endif /* else CONFIG_BLIK_RADIO */
 
 static void kw41z_isr(int unused)
 {
@@ -871,6 +994,11 @@ static inline u8_t *get_mac(struct device *dev)
 	return kw41z->mac_addr;
 }
 
+static int kw41z_pm_control(struct device *dev, u32_t command, void *context)
+{
+	return -ENOTSUP;
+}
+
 static int kw41z_init(struct device *dev)
 {
 	struct kw41z_context *kw41z = dev->driver_data;
@@ -976,6 +1104,52 @@ static int kw41z_init(struct device *dev)
 	return 0;
 }
 
+#if defined(CONFIG_BLIK_RADIO)
+static int kw41z_blik_init(struct device *dev)
+{
+	int ret = 0;
+
+	ret = kw41z_init(dev);
+	if (ret < 0) {
+		return ret;
+	}
+
+	/* Set mac in the device context */
+	u8_t *mac = get_mac(dev);
+
+#if defined(CONFIG_KW41_DBG_TRACE)
+	kw41_dbg_idx = 0;
+#endif
+
+	return 0;
+}
+
+static struct radio_api kw41z_radio_api = {
+	.get_capabilities	= kw41z_get_capabilities,
+	.set_channel		= kw41z_set_channel,
+	.set_filter		= kw41z_set_filter,
+	.set_txpower		= kw41z_set_txpower,
+
+	.start			= kw41z_start,
+	.stop			= kw41z_stop,
+
+	.cca			= kw41z_cca,
+	.tx			= kw41z_tx,
+	.rx			= blik_rx,
+};
+
+DEVICE_DEFINE(
+	kw41z,                              /* Device Name */
+	CONFIG_IEEE802154_KW41Z_DRV_NAME,   /* Driver Name */
+	kw41z_blik_init,                    /* Initialization Function */
+	kw41z_pm_control,                   /* Power Management Func */
+	&kw41z_context_data,                /* Context data */
+	NULL,                               /* Configuration info */
+	POST_KERNEL,                        /* Init Level */
+	CONFIG_IEEE802154_KW41Z_INIT_PRIO,  /* Init priority */
+	&kw41z_radio_api);             /* API interface functions */
+#else /* CONFIG_BLIK_RADIO */
+
 static void kw41z_iface_init(struct net_if *iface)
 {
 	struct device *dev = net_if_get_device(iface);
@@ -1016,3 +1190,4 @@ NET_DEVICE_INIT(
 	IEEE802154_L2,                      /* L2 */
 	NET_L2_GET_CTX_TYPE(IEEE802154_L2), /* L2 context type */
 	KW41Z_PSDU_LENGTH);                 /* MTU size */
+#endif /* else CONFIG_BLIK_RADIO */
