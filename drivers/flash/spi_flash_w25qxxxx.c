@@ -552,6 +552,7 @@ void spi_flash_wb_page_layout(struct device *dev,
 static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command,
 		void *context)
 {
+#if CONFIG_DEVICE_POWER_MANAGEMENT
 	static u32_t pm_state = DEVICE_PM_ACTIVE_STATE;
 
 	int rc = 0;
@@ -619,6 +620,9 @@ static int spi_flash_wb_power_mode_control(struct device *dev, u32_t command,
 	}
 
 	return 0;
+#else
+	return -ENOTSUP;
+#endif
 }
 
 static const struct flash_driver_api spi_flash_api = {
