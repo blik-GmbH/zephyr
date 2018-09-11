@@ -17,7 +17,7 @@
 #define TRIGGED_INT1			BIT(4)
 #define TRIGGED_INT2			BIT(5)
 
-#define LIS3DH_ANYM_CFG (LIS3DH_6D_CFG | LIS3DH_INT_CFG_ZHIE_ZUPE | \
+#define LIS3DH_ANYM_CFG (LIS3DH_INT_CFG_ZHIE_ZUPE | \
 		LIS3DH_INT_CFG_YHIE_YUPE | LIS3DH_INT_CFG_XHIE_XUPE)
 
 static int lis3dh_trigger_drdy_set(struct device *dev, enum sensor_channel chan,
