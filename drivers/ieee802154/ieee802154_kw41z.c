@@ -574,7 +574,12 @@ static int kw41z_tx(struct device *dev, struct net_buf_simple *frag)
 
 	kw41z_enable_seq_irq();
 
-	k_sem_take(&kw41z->seq_sync, K_FOREVER);
+	/* Waiting until TX IRQ is set. Need a timeout to prevent the device
+	 * from entering the low power state as the IRQ can't be detected in
+	 * the low power state
+	 */
+	while (k_sem_take(&kw41z->seq_sync, 1) != 0) {
+	}
 
 	SYS_LOG_DBG("seq_retval: %d", kw41z->seq_retval);
 	return kw41z->seq_retval;
