@@ -82,15 +82,6 @@ Serial Port
 
 The KW41Z SoC has one UART, which is used for the console.
 
-.. _FRDM-KW41Z Website:
-   http://www.nxp.com/products/microcontrollers-and-processors/more-processors/application-specific-mcus-mpus/bluetooth-low-energy-ble/nxp-freedom-development-kit-for-kinetis-kw41z-31z-21z-mcus:FRDM-KW41Z
-
-.. _FRDM-KW41Z User Guide:
-   http://www.nxp.com/assets/documents/data/en/user-guides/FRDMKW41ZUG.pdf
-
-.. _FRDM-KW41Z Schematics:
-   http://www.nxp.com/assets/downloads/data/en/schematics/FRDM-KW41Z-SCH.pdf
-
 .. _KW41Z Website:
    http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/kinetis-cortex-m-mcus/w-series-wireless-m0-plus-m4/kinetis-kw41z-2.4-ghz-dual-mode-ble-and-802.15.4-wireless-radio-microcontroller-mcu-based-on-arm-cortex-m0-plus-core:KW41Z
 
@@ -99,9 +90,6 @@ The KW41Z SoC has one UART, which is used for the console.
 
 .. _KW41Z Reference Manual:
    http://www.nxp.com/assets/documents/data/en/reference-manuals/MKW41Z512RM.pdf
-
-.. _DAPLink FRDM-KW41Z Firmware:
-   http://www.nxp.com/assets/downloads/data/en/reference-applications/OpenSDAv2.2_DAPLink_frdmkw41z_rev0241.zip
 
 .. _Segger J-Link OpenSDA V2.1 Firmware:
    https://www.segger.com/downloads/jlink/OpenSDA_V2_1.bin
