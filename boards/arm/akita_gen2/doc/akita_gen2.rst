@@ -82,14 +82,44 @@ Serial Port
 
 The KW41Z SoC has one UART, which is used for the console.
 
-.. _FRDM-KW41Z Website:
-   http://www.nxp.com/products/microcontrollers-and-processors/more-processors/application-specific-mcus-mpus/bluetooth-low-energy-ble/nxp-freedom-development-kit-for-kinetis-kw41z-31z-21z-mcus:FRDM-KW41Z
+J-Link
+======
 
-.. _FRDM-KW41Z User Guide:
-   http://www.nxp.com/assets/documents/data/en/user-guides/FRDMKW41ZUG.pdf
+In order to flash, debug and use RTT, the SEGGER J-Link is required together
+with a Tag-Connect cable (TC2050-IDC).
+Make sure to connect the J-Link via USB before connecting the Akita board with
+it.
 
-.. _FRDM-KW41Z Schematics:
-   http://www.nxp.com/assets/downloads/data/en/schematics/FRDM-KW41Z-SCH.pdf
+For the right device permissions, download the Segger J-Link Software and
+Documentation Pack, in which you find the udev rules 99-jlink.rules.
+To be able to use J-Link as non-root user, do the following:
+
+	``sudo cp 99-jlink.rules /etc/udev/rules.d/``
+	``sudo reboot``
+
+RTT
+===
+
+As alternative to the UART, RTT can be used with a SEGGER J-Link device.
+
+To enable RTT as console output, it has first to be enabled in the kernel.
+Use CONFIG_RTT_CONSOLE:
+'Device Drivers' -> 'Console drivers' -> 'Use RTT console'
+There might be issues when also enabling the UART as console, so it is
+recommended to disable UART_CONSOLE.
+
+To use RTT, the Segger J-Link Software and Documentation Pack is needed.
+After extracting, run the included JLinkExe in a terminal. 'connect' and use SWD
+with the default parameters, leave that terminal open.
+After that you can launch JLinkRTTClient to connect to the previously established
+connection.
+
+Flashing & Debugging
+====================
+
+After the setup for J-Link, everything should just work out of the box and both
+'make flash' and 'make debug' can be used.
+
 
 .. _KW41Z Website:
    http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/kinetis-cortex-m-mcus/w-series-wireless-m0-plus-m4/kinetis-kw41z-2.4-ghz-dual-mode-ble-and-802.15.4-wireless-radio-microcontroller-mcu-based-on-arm-cortex-m0-plus-core:KW41Z
@@ -100,8 +130,8 @@ The KW41Z SoC has one UART, which is used for the console.
 .. _KW41Z Reference Manual:
    http://www.nxp.com/assets/documents/data/en/reference-manuals/MKW41Z512RM.pdf
 
-.. _DAPLink FRDM-KW41Z Firmware:
-   http://www.nxp.com/assets/downloads/data/en/reference-applications/OpenSDAv2.2_DAPLink_frdmkw41z_rev0241.zip
-
 .. _Segger J-Link OpenSDA V2.1 Firmware:
    https://www.segger.com/downloads/jlink/OpenSDA_V2_1.bin
+
+.. _Segger J-Link Software and Documentation Pack:
+   https://www.segger.com/downloads/jlink/JLink_Linux_x86_64.tgz
