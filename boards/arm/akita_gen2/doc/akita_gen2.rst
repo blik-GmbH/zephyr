@@ -82,6 +82,45 @@ Serial Port
 
 The KW41Z SoC has one UART, which is used for the console.
 
+J-Link
+======
+
+In order to flash, debug and use RTT, the SEGGER J-Link is required together
+with a Tag-Connect cable (TC2050-IDC).
+Make sure to connect the J-Link via USB before connecting the Akita board with
+it.
+
+For the right device permissions, download the Segger J-Link Software and
+Documentation Pack, in which you find the udev rules 99-jlink.rules.
+To be able to use J-Link as non-root user, do the following:
+
+	``sudo cp 99-jlink.rules /etc/udev/rules.d/``
+	``sudo reboot``
+
+RTT
+===
+
+As alternative to the UART, RTT can be used with a SEGGER J-Link device.
+
+To enable RTT as console output, it has first to be enabled in the kernel.
+Use CONFIG_RTT_CONSOLE:
+'Device Drivers' -> 'Console drivers' -> 'Use RTT console'
+There might be issues when also enabling the UART as console, so it is
+recommended to disable UART_CONSOLE.
+
+To use RTT, the Segger J-Link Software and Documentation Pack is needed.
+After extracting, run the included JLinkExe in a terminal. 'connect' and use SWD
+with the default parameters, leave that terminal open.
+After that you can launch JLinkRTTClient to connect to the previously established
+connection.
+
+Flashing & Debugging
+====================
+
+After the setup for J-Link, everything should just work out of the box and both
+'make flash' and 'make debug' can be used.
+
+
 .. _KW41Z Website:
    http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/kinetis-cortex-m-mcus/w-series-wireless-m0-plus-m4/kinetis-kw41z-2.4-ghz-dual-mode-ble-and-802.15.4-wireless-radio-microcontroller-mcu-based-on-arm-cortex-m0-plus-core:KW41Z
 
@@ -93,3 +132,6 @@ The KW41Z SoC has one UART, which is used for the console.
 
 .. _Segger J-Link OpenSDA V2.1 Firmware:
    https://www.segger.com/downloads/jlink/OpenSDA_V2_1.bin
+
+.. _Segger J-Link Software and Documentation Pack:
+   https://www.segger.com/downloads/jlink/JLink_Linux_x86_64.tgz
