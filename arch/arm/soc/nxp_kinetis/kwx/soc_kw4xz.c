@@ -45,9 +45,9 @@ u8_t __kinetis_flash_config_section __kinetis_flash_config[] = {
 	0xFF, 0xFF, 0xFF, 0xFF,
 	/*
 	 * Flash security: Backdoor key disabled, Mass erase enabled,
-	 *                 Factory access enabled, MCU is unsecure
+	 *                 Factory access enabled, MCU is secure
 	 */
-	0xFE,
+	0xFF,
 	/* Flash nonvolatile option: NMI enabled, EzPort enabled, Normal boot */
 	0xFF,
 	/* Reserved for FlexNVM feature (unsupported by this MCU) */
