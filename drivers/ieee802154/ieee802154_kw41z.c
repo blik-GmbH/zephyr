@@ -484,7 +484,7 @@ static int blik_rx(struct device *dev, u8_t *data, u8_t *data_len,
 	int ret = 0;
 	u16_t type = 0;
 	u8_t value = 0;
-	u8_t size32 = 0;
+	u8_t size32 = *data_len / 4;
 
 	/* split the timeout into 10 cycles with timebase 100us */
 	u8_t timeout_count = 10;
