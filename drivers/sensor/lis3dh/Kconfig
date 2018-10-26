@@ -221,7 +221,8 @@ config LIS3DH_ODR_9_LOW
 endchoice
 
 config LIS3DH_FIFO_ENABLE
-    bool "Enable FIFO"
+    bool
+    prompt "Enable FIFO"
     depends on LIS3DH
     default n
     help

@@ -11,6 +11,10 @@
 
 #include "lis3dh.h"
 
+	K_SEM_DEFINE(sem_lis3dh_fifo_ovr, 0, 1);
+	K_SEM_DEFINE(sem_lis3dh_fifo_wtm,0 ,1);
+	K_SEM_DEFINE(sem_lis3dh_fifo_empty, 0,1);
+
 static void lis3dh_convert(struct sensor_value *val, s64_t raw_val)
 {
 	/* val = raw_val * LIS3DH_ACCEL_SCALE / (10^6 * (2^16 - 1)) */
@@ -223,9 +227,71 @@ int lis3dh_init(struct device *dev)
 		return -EIO;
 	}
 #endif
+#if defined(CONFIG_LIS3DH_FIFO_ENABLE)
 
+	u8_t reg_val;
+	/*enable FIFO*/
+	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+				       LIS3DH_REG_CTRL5, LIS3DH_FIFO_EN_BIT) < 0) {
+			SYS_LOG_DBG("Failed to enable FIFO");
+		}
+	if (i2c_reg_read_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+						    LIS3DH_REG_CTRL5, &reg_val) < 0){
+			SYS_LOG_DBG("Failed to read FIFO status register");
+			return;
+		}
+
+	/*set FIFO MODE*/
+	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+			LIS3DH_REG_FIFO_CTRL, LIS3DH_FIFO_MODE_MASK & LIS3DH_FIFO_MODE_BITS) < 0) {
+				SYS_LOG_DBG("Failed to set FIFO Mode");
+			}
+	/*SYS_LOG_DBG(" FIFO MODE Register: %d",L );*/
+
+#endif
 	return 0;
 }
+
+#if defined(CONFIG_LIS3DH_FIFO_ENABLE)
+void lis3dh_fifo_flags_get(struct device *dev)
+{
+	u8_t reg_val;
+	struct lis3dh_data *drv_data = dev->driver_data;
+	if (i2c_reg_read_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+					    LIS3DH_REG_FIFO_SRC, &reg_val) < 0){
+		SYS_LOG_DBG("Failed to read FIFO status register");
+		return;
+	}
+
+	if (i2c_reg_read_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
+					    LIS3DH_REG_FIFO_CTRL, &reg_val) < 0){
+		SYS_LOG_DBG("Failed to read FIFO status register");
+		return;
+	}
+
+	if(reg_val & LIS3DH_FIFO_FLAG_WTM){
+		k_sem_give(&sem_lis3dh_fifo_wtm);
+	}
+	else{
+		k_sem_reset(&sem_lis3dh_fifo_wtm);
+	}
+
+	if(reg_val & LIS3DH_FIFO_FLAG_OVR){
+			k_sem_give(&sem_lis3dh_fifo_ovr);
+		}
+	else{
+			k_sem_reset(&sem_lis3dh_fifo_ovr);
+	}
+
+	if(reg_val & LIS3DH_FIFO_FLAG_EMPTY){
+			k_sem_give(&sem_lis3dh_fifo_empty);
+		}
+	else{
+			k_sem_reset(&sem_lis3dh_fifo_empty);
+		}
+	drv_data->fifo_samples = (reg_val & LIS3DH_FIFO_SAMPLES_MASK);
+}
+#endif
 
 struct lis3dh_data lis3dh_driver;
 

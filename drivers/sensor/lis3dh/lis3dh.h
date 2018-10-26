@@ -82,7 +82,7 @@
 	#define LIS3DH_FIFO_MODE	3
 #endif
 
-#define LIS3DH_FIFO_CTRL_REG	0x2E
+#define LIS3DH_REG_FIFO_CTRL	0x2E
 #define LIS3DH_FIFO_MODE_SHIFT	6
 #define LIS3DH_FIFO_MODE_BITS	(LIS3DH_FIFO_MODE << LIS3DH_FIFO_MODE_SHIFT)
 #define LIS3DH_FIFO_MODE_MASK	(BIT_MASK(2) << LIS3DH_FIFO_MODE_SHIFT)
@@ -114,16 +114,22 @@
 #define LIS3DH_REG_ACCEL_Z_MSB		0x2D
 
 #define LIS3DH_REG_CTRL5		0x24
+#define LIS3DH_FIFO_EN_BIT		BIT(6)
 #define LIS3DH_LIR_INT2_SHIFT	1
 #define LIS3DH_EN_LIR_INT2		BIT(LIS3DH_LIR_INT2_SHIFT)
 
-#define LIS3DH_REG_FIFO_SRC			0X2F
 
 #define LIS3DH_REG_CTRL6		0x25
 #define LIS3DH_EN_ANYM_INT2_SHIFT	5
 #define LIS3DH_EN_ANYM_INT2		BIT(LIS3DH_EN_ANYM_INT2_SHIFT)
 
 #define LIS3DH_REG_STATUS		0x27
+
+#define LIS3DH_REG_FIFO_SRC		0x2F
+#define LIS3DH_FIFO_FLAG_WTM	BIT(7)
+#define	LIS3DH_FIFO_FLAG_OVR	BIT(6)
+#define LIS3DH_FIFO_FLAG_EMPTY	BIT(5)
+#define LIS3DH_FIFO_SAMPLES_MASK	BIT_MASK(5)
 
 #define LIS3DH_REG_INT2_CFG		0x34
 #define LIS3DH_REG_INT2_SRC		0x35
@@ -180,6 +186,10 @@ struct lis3dh_data {
 #endif
 
 #endif /* CONFIG_LIS3DH_TRIGGER */
+#if defined(CONFIG_LIS3DH_FIFO_ENABLE)
+	u8_t fifo_samples;
+#endif
+
 };
 
 int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan);
@@ -197,6 +207,10 @@ int lis3dh_init_interrupt(struct device *dev);
 
 int lis3dh_acc_slope_config(struct device *dev, enum sensor_attribute attr,
                             const struct sensor_value *val);
+#endif
+
+#if defined(CONFIG_LIS3DH_FIFO_ENABLE)
+void lis3dh_fifo_flags_get(struct device *dev);
 #endif
 
 #define SYS_LOG_DOMAIN "LIS3DH"
