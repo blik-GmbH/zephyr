@@ -82,14 +82,15 @@
 	#define LIS3DH_FIFO_MODE	3
 #endif
 
-#define LIS3DH_REG_FIFO_CTRL	0x2E
-#define LIS3DH_FIFO_MODE_SHIFT	6
-#define LIS3DH_FIFO_MODE_BITS	(LIS3DH_FIFO_MODE << LIS3DH_FIFO_MODE_SHIFT)
-#define LIS3DH_FIFO_MODE_MASK	(BIT_MASK(2) << LIS3DH_FIFO_MODE_SHIFT)
+#define LIS3DH_REG_FIFO_CTRL			0x2E
+#define LIS3DH_FIFO_MODE_SHIFT			6
+#define LIS3DH_FIFO_MODE_BITS			(LIS3DH_FIFO_MODE << LIS3DH_FIFO_MODE_SHIFT)
+#define LIS3DH_FIFO_MODE_MASK			(BIT_MASK(2) << LIS3DH_FIFO_MODE_SHIFT)
 #define LIS3DH_FIFO_WATERMARKLVL_MASK	BIT_MASK(4)
-#define LIS3DH_LIR_INT2_SHIFT	1
-#define LIS3DH_EN_LIR_INT2		BIT(LIS3DH_LIR_INT2_SHIFT)
-
+#define LIS3DH_LIR_INT2_SHIFT			1
+#define LIS3DH_EN_LIR_INT2				BIT(LIS3DH_LIR_INT2_SHIFT)
+#define LIS3DH_WATERMARK_LVL_MASK		BIT_MASK(5)
+#define	LIS3DH_WATERMARK_LVL			CONFIG_LIS3DH_FIFO_WATERMARK_LVL
 
 
 
@@ -159,9 +160,20 @@
 
 struct lis3dh_data {
 	struct device *i2c;
+#if !defined(CONFIG_LIS3DH_FIFO_ENABLE)
 	s16_t x_sample;
 	s16_t y_sample;
 	s16_t z_sample;
+#endif
+
+#if defined(CONFIG_LIS3DH_FIFO_ENABLE)
+	s16_t x_sample[32];
+	s16_t y_sample[32];
+	s16_t z_sample[32];
+	u8_t fifo_flag_samples;
+
+#endif
+
 #if defined(CONFIG_LIS3DH_ENABLE_TEMP)
 	s16_t temp_sample;
 #endif
@@ -186,9 +198,6 @@ struct lis3dh_data {
 #endif
 
 #endif /* CONFIG_LIS3DH_TRIGGER */
-#if defined(CONFIG_LIS3DH_FIFO_ENABLE)
-	u8_t fifo_samples;
-#endif
 
 };
 

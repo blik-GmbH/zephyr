@@ -252,3 +252,14 @@ config LIS3DH_FIFO_MODE_STREAMTOFIFO
 	prompt "Stream-to-FIFO"
 	
 endchoice
+
+config LIS3DH_FIFO_WATERMARK_LVL
+	int
+	prompt "Watermark level between 0-32"
+	range 0 32
+	depends on LIS3DH_FIFO_ENABLE
+	default 32
+	help
+		Set the level when the watermark bit/interrupt is reached 
+		in the FIFO. 
+
