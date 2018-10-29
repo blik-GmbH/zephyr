@@ -221,24 +221,24 @@ config LIS3DH_ODR_9_LOW
 endchoice
 
 config LIS3DH_FIFO_ENABLE
-    bool
-    prompt "Enable FIFO"
-    depends on LIS3DH
-    default n
-    help
-      Enable/disable streaming of data to FIFO of LIS3DH
-      
+	bool
+	prompt "Enable FIFO"
+	depends on LIS3DH
+	default n
+	help
+		Enable/disable streaming of data to FIFO of LIS3DH
+
 choice
 	prompt "FIFO MODE"
 	depends on LIS3DH_FIFO_ENABLE
 	default LIS3DH_FIFO_MODE_FIFO
 	help
 		Choose in what mode the data is written to the FIFO
-		
+
 config LIS3DH_FIFO_MODE_BYPASS
 	bool
 	prompt "Bypass"
-	
+
 config LIS3DH_FIFO_MODE_FIFO
 	bool
 	prompt "FIFO"
@@ -246,11 +246,11 @@ config LIS3DH_FIFO_MODE_FIFO
 config LIS3DH_FIFO_MODE_STREAM
 	bool
 	prompt "Stream"
-	
+
 config LIS3DH_FIFO_MODE_STREAMTOFIFO
 	bool
 	prompt "Stream-to-FIFO"
-	
+
 endchoice
 
 config LIS3DH_FIFO_WATERMARK_LVL
@@ -260,6 +260,5 @@ config LIS3DH_FIFO_WATERMARK_LVL
 	depends on LIS3DH_FIFO_ENABLE
 	default 32
 	help
-		Set the level when the watermark bit/interrupt is reached 
-		in the FIFO. 
-
+		Set the level when the watermark bit/interrupt is reached
+		in the FIFO.

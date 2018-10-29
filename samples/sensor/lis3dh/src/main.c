@@ -90,24 +90,23 @@ void main(void)
 #if !defined(CONFIG_LIS3DH_FIFO_ENABLE)
 		rc = sensor_channel_get(dev, SENSOR_CHAN_ACCEL_XYZ, accel);
 		if (rc != 0) {
-					printk("sensor_channel_get accel: %d\n", rc);
-					break;
-				}
-		printk(" AX= %d.%d   AY= %d.%d   AZ= %d.%d \n",
-							accel[0].val1, accel[0].val2,
-							accel[1].val1, accel[1].val2,
-							accel[2].val1, accel[2].val2);
+			printk("sensor_channel_get accel: %d\n", rc);
+			break;
+		}
+		printk(" AX= %d.%d   AY= %d.%d   AZ= %d.%d\n",
+			accel[0].val1, accel[0].val2,
+			accel[1].val1, accel[1].val2,
+			accel[2].val1, accel[2].val2);
 #endif
 
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
-		for(int i = 0; i < 32; i++)
-		{
+		for (int i = 0; i < 32; i++) {
 
 			sensor_channel_get(dev, SENSOR_CHAN_ACCEL_XYZ, accel);
-			printk(" AX= %d.%d   AY= %d.%d   AZ= %d.%d \n",
-					accel[0].val1, accel[0].val2,
-					accel[1].val1, accel[1].val2,
-					accel[2].val1, accel[2].val2);
+			printk(" AX= %d.%d   AY= %d.%d   AZ= %d.%d\n",
+			accel[0].val1, accel[0].val2,
+			accel[1].val1, accel[1].val2,
+			accel[2].val1, accel[2].val2);
 		}
 #endif
 

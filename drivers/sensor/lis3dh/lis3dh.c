@@ -12,8 +12,8 @@
 #include "lis3dh.h"
 
 	K_SEM_DEFINE(sem_lis3dh_fifo_ovr, 0, 1);
-	K_SEM_DEFINE(sem_lis3dh_fifo_wtm,0 ,1);
-	K_SEM_DEFINE(sem_lis3dh_fifo_empty, 0,1);
+	K_SEM_DEFINE(sem_lis3dh_fifo_wtm, 0, 1);
+	K_SEM_DEFINE(sem_lis3dh_fifo_empty, 0, 1);
 	K_SEM_DEFINE(sem_lis3dh_fifo_fetch, 0, 32);
 
 static void lis3dh_convert(struct sensor_value *val, s64_t raw_val)
@@ -56,7 +56,7 @@ static int lis3dh_channel_get(struct device *dev,
 	/* Take semaphore to read next value from FIFO in the next call
 	 * channel get
 	 */
-	if(k_sem_take(&sem_lis3dh_fifo_fetch, K_MSEC(1)) == -EAGAIN){
+	if (k_sem_take(&sem_lis3dh_fifo_fetch, K_MSEC(1)) == -EAGAIN) {
 
 		SYS_LOG_DBG("Can not take fifo_fetch sem.");
 		return -EIO;
@@ -65,7 +65,8 @@ static int lis3dh_channel_get(struct device *dev,
 	int i = k_sem_count_get(&sem_lis3dh_fifo_fetch);
 
 	/* return one value of the FIFO. To read the whole
-	 * FIFO sensor_channel_get has to be called 32 times */
+	 * FIFO sensor_channel_get has to be called 32 times
+	 */
 	if (chan == SENSOR_CHAN_ACCEL_X) {
 		lis3dh_convert(val, drv_data->x_sample[i]);
 	} else if (chan == SENSOR_CHAN_ACCEL_Y) {
@@ -148,9 +149,9 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 	/* only read FIFO when the watermark level has been reached.
 	 * Alternatively the overrun flag can be checked.
 	 */
-	if(k_sem_take(&sem_lis3dh_fifo_wtm, K_NO_WAIT) != 0)
-	{
-		SYS_LOG_DBG("Tried to read FIFO that has not reached the Watermark.");
+	if (k_sem_take(&sem_lis3dh_fifo_wtm, K_NO_WAIT) != 0) {
+		SYS_LOG_DBG(
+		"Tried to read FIFO that has not reached the Watermark.");
 		return -EIO;
 	}
 
@@ -160,15 +161,15 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 	 */
 	if (i2c_burst_read(drv_data->i2c, LIS3DH_I2C_ADDRESS,
 			   (LIS3DH_REG_ACCEL_X_LSB | LIS3DH_AUTOINCREMENT_ADDR),
-			   buf, 192)< 0) {
+			   buf, 192) < 0) {
 		SYS_LOG_DBG("Could not read accel axis data");
 		return -EIO;
 	}
 
 	/*Write the 192 byte long buffer to 32* 2 byte array*/
-	for(int i = 0; i < 32; i++)
-	{
+	for (int i = 0; i < 32; i++) {
 		int k = 6*i;
+
 		drv_data->x_sample[i] = (buf[k+1] << 8) | buf[k];
 		drv_data->y_sample[i] = (buf[k+3] << 8) | buf[k+2];
 		drv_data->z_sample[i] = (buf[k+5] << 8) | buf[k+4];
@@ -177,19 +178,21 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 
 	/* if the FIFO is used in FIFO Mode, it has to be reset
 	 * by setting it to Bypass Mode and back to FIFO Mode to
-	 * continue the writing to the FIFO */
+	 * continue the writing to the FIFO
+	 */
 #if defined(CONFIG_LIS3DH_FIFO_MODE_FIFO)
 	/* set to Bypass mode*/
 	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
-			LIS3DH_REG_FIFO_CTRL, (LIS3DH_FIFO_MODE_MASK & 0U))
-			 < 0) {
-				SYS_LOG_DBG("Failed to reset FIFO Mode");
+			LIS3DH_REG_FIFO_CTRL,
+			(LIS3DH_FIFO_MODE_MASK & 0U)) < 0) {
+		SYS_LOG_DBG("Failed to reset FIFO Mode");
 			}
 	/*set back to FIFO mode*/
 	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
-				LIS3DH_REG_FIFO_CTRL, (LIS3DH_FIFO_MODE_MASK & LIS3DH_FIFO_MODE_BITS))
-				 < 0) {
-					SYS_LOG_DBG("Failed to reset FIFO Mode");
+				LIS3DH_REG_FIFO_CTRL,
+				(LIS3DH_FIFO_MODE_MASK & LIS3DH_FIFO_MODE_BITS))
+				< 0) {
+		SYS_LOG_DBG("Failed to reset FIFO Mode");
 				}
 
 
@@ -198,7 +201,8 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 
 
 	/*set the fifo_fetch semaphore to 32 to indicate that
-	 * a full fifo sample was fetched */
+	 * a full fifo sample was fetched
+	 */
 	k_sem_init(&sem_lis3dh_fifo_fetch, 32, 32);
 
 #endif
@@ -333,16 +337,20 @@ int lis3dh_init(struct device *dev)
 
 	/*enable FIFO*/
 	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
-				       LIS3DH_REG_CTRL5, LIS3DH_FIFO_EN_BIT) < 0) {
-			SYS_LOG_DBG("Failed to enable FIFO");
-		}
+				       LIS3DH_REG_CTRL5,
+				       LIS3DH_FIFO_EN_BIT) < 0) {
+		SYS_LOG_DBG("Failed to enable FIFO");
+	}
 
 	/*set FIFO MODE and Watermark Level*/
 	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
-			LIS3DH_REG_FIFO_CTRL, (LIS3DH_FIFO_MODE_MASK & LIS3DH_FIFO_MODE_BITS)
-			| (LIS3DH_WATERMARK_LVL & LIS3DH_WATERMARK_LVL_MASK) ) < 0) {
-				SYS_LOG_DBG("Failed to set FIFO Mode");
-			}
+			LIS3DH_REG_FIFO_CTRL,
+			(LIS3DH_FIFO_MODE_MASK & LIS3DH_FIFO_MODE_BITS)
+			| (LIS3DH_WATERMARK_LVL & LIS3DH_WATERMARK_LVL_MASK))
+			< 0) {
+		SYS_LOG_DBG("Failed to set FIFO Mode");
+	}
+
 
 #endif
 	return 0;
@@ -353,32 +361,30 @@ void lis3dh_fifo_flags_get(struct device *dev)
 {
 	u8_t reg_val;
 	struct lis3dh_data *drv_data = dev->driver_data;
+
 	if (i2c_reg_read_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
 					    LIS3DH_REG_FIFO_SRC, &reg_val) < 0){
 		SYS_LOG_DBG("Failed to read FIFO status register");
 		return;
 	}
 	/* set semaphores according to flags*/
-	if(reg_val & LIS3DH_FIFO_FLAG_WTM){
+	if (reg_val & LIS3DH_FIFO_FLAG_WTM)  {
 		k_sem_give(&sem_lis3dh_fifo_wtm);
-	}
-	else{
+	} else{
 		k_sem_reset(&sem_lis3dh_fifo_wtm);
 	}
 
-	if(reg_val & LIS3DH_FIFO_FLAG_OVR){
-			k_sem_give(&sem_lis3dh_fifo_ovr);
-		}
-	else{
-			k_sem_reset(&sem_lis3dh_fifo_ovr);
+	if (reg_val & LIS3DH_FIFO_FLAG_OVR) {
+		k_sem_give(&sem_lis3dh_fifo_ovr);
+	} else{
+		k_sem_reset(&sem_lis3dh_fifo_ovr);
 	}
 
-	if(reg_val & LIS3DH_FIFO_FLAG_EMPTY){
-			k_sem_give(&sem_lis3dh_fifo_empty);
-		}
-	else{
-			k_sem_reset(&sem_lis3dh_fifo_empty);
-		}
+	if (reg_val & LIS3DH_FIFO_FLAG_EMPTY) {
+		k_sem_give(&sem_lis3dh_fifo_empty);
+	} else{
+		k_sem_reset(&sem_lis3dh_fifo_empty);
+	}
 
 	/* write the amount of samples in the fifo to
 	 * dev->fifo_flag_samples
