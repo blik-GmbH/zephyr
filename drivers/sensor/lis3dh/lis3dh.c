@@ -53,27 +53,66 @@ static int lis3dh_channel_get(struct device *dev,
 
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
 
-	/* Take semaphore to read next value from FIFO in the next call
-	 * channel get
-	 */
-	if (k_sem_take(&sem_lis3dh_fifo_fetch, K_MSEC(1)) == -EAGAIN) {
 
-		SYS_LOG_DBG("Can not take fifo_fetch sem.");
-		return -EIO;
-	}
-	/*save value of semaphore*/
-	int i = k_sem_count_get(&sem_lis3dh_fifo_fetch);
 
 	/* return one value of the FIFO. To read the whole
 	 * FIFO sensor_channel_get has to be called 32 times
 	 */
 	if (chan == SENSOR_CHAN_ACCEL_X) {
+
+		/* Take semaphore to read next value from FIFO in the next call
+		 * channel get
+		 */
+		if (k_sem_take(&sem_lis3dh_fifo_fetch, K_MSEC(1)) == -EAGAIN) {
+
+			SYS_LOG_DBG("Can not take fifo_fetch sem.");
+			return -EIO;
+		}
+		/*save value of semaphore*/
+		int i = k_sem_count_get(&sem_lis3dh_fifo_fetch);
+
 		lis3dh_convert(val, drv_data->x_sample[i]);
 	} else if (chan == SENSOR_CHAN_ACCEL_Y) {
+
+		/* Take semaphore to read next value from FIFO in the next call
+		 * channel get
+		 */
+		if (k_sem_take(&sem_lis3dh_fifo_fetch, K_MSEC(1)) == -EAGAIN) {
+
+			SYS_LOG_DBG("Can not take fifo_fetch sem.");
+			return -EIO;
+		}
+		/*save value of semaphore*/
+		int i = k_sem_count_get(&sem_lis3dh_fifo_fetch);
+
 		lis3dh_convert(val, drv_data->y_sample[i]);
 	} else if (chan == SENSOR_CHAN_ACCEL_Z) {
+
+		/* Take semaphore to read next value from FIFO in the next call
+		 * channel get
+		 */
+		if (k_sem_take(&sem_lis3dh_fifo_fetch, K_MSEC(1)) == -EAGAIN) {
+
+			SYS_LOG_DBG("Can not take fifo_fetch sem.");
+			return -EIO;
+		}
+		/*save value of semaphore*/
+		int i = k_sem_count_get(&sem_lis3dh_fifo_fetch);
+
 		lis3dh_convert(val, drv_data->z_sample[i]);
 	} else if (chan == SENSOR_CHAN_ACCEL_XYZ) {
+
+		/* Take semaphore to read next value from FIFO in the next call
+		 * channel get
+		 */
+		if (k_sem_take(&sem_lis3dh_fifo_fetch, K_MSEC(1)) == -EAGAIN) {
+
+			SYS_LOG_DBG("Can not take fifo_fetch sem.");
+			return -EIO;
+		}
+		/*save value of semaphore*/
+		int i = k_sem_count_get(&sem_lis3dh_fifo_fetch);
+
 		lis3dh_convert(val, drv_data->x_sample[i]);
 		lis3dh_convert(val + 1, drv_data->y_sample[i]);
 		lis3dh_convert(val + 2, drv_data->z_sample[i]);
