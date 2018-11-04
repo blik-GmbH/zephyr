@@ -151,22 +151,11 @@ int lis3dh_sample_fetch_temp(struct device *dev)
 
 	s16_t raw = ((buf[1] << 8) | buf [0]);
 
-	/* According to the datasheet, the ADC has a resolution of 10
-	 * bit in normal mode and 8 bit in low-power mode.
-	 * The data is represented as left-aligned 2's complement,
-	 * where the conversion rate is 1 digit/°C.
-	 * The temperature sensor,which is connected to the ADC3, is
-	 * supposed to have a 8-bit resolution.
-	 * The measured LSb is in both power modes bit 6 for the
-	 * temperature sensor.
-	 * The sign-bit might then be at either bit 14 (8 bit from the
-	 * LSb) or bit 15 (10 bit from the LSb). And unclear if this
-	 * is depending on the power mode or not. */
-
-	/* To convert the data depending on the power mode, it gets
-	 * shifted to the MSb and divided to preserve the sign while
-	 * setting the magnitude */
-	drv_data->temp_sample = (raw << LIS3DH_TEMP_SHIFT) / LIS3DH_TEMP_MAG;
+	/*
+	 * The data is represented as 10bit left-aligned 2's
+	 * complement, where the conversion rate is 1 digit/°C.
+	 */
+	drv_data->temp_sample = raw / LIS3DH_TEMP_MAG;
 
 	return 0;
 }
