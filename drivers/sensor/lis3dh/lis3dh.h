@@ -92,8 +92,6 @@
 #define LIS3DH_WATERMARK_LVL_MASK	BIT_MASK(5)
 #define LIS3DH_WATERMARK_LVL		CONFIG_LIS3DH_FIFO_WATERMARK_LVL
 
-
-
 #if defined(CONFIG_LIS3DH_ACCEL_RANGE_2G)
 	#define LIS3DH_FS_IDX		0
 #elif defined(CONFIG_LIS3DH_ACCEL_RANGE_4G)
@@ -116,9 +114,8 @@
 
 #define LIS3DH_REG_CTRL5		0x24
 #define LIS3DH_FIFO_EN_BIT		BIT(6)
-#define LIS3DH_LIR_INT2_SHIFT	1
+#define LIS3DH_LIR_INT2_SHIFT		1
 #define LIS3DH_EN_LIR_INT2		BIT(LIS3DH_LIR_INT2_SHIFT)
-
 
 #define LIS3DH_REG_CTRL6		0x25
 #define LIS3DH_EN_ANYM_INT2_SHIFT	5
@@ -160,18 +157,15 @@
 
 struct lis3dh_data {
 	struct device *i2c;
-#if !defined(CONFIG_LIS3DH_FIFO_ENABLE)
-	s16_t x_sample;
-	s16_t y_sample;
-	s16_t z_sample;
-#endif
-
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
 	s16_t x_sample[32];
 	s16_t y_sample[32];
 	s16_t z_sample[32];
 	u8_t fifo_flag_samples;
-
+#else
+	s16_t x_sample;
+	s16_t y_sample;
+	s16_t z_sample;
 #endif
 
 #if defined(CONFIG_LIS3DH_ENABLE_TEMP)
@@ -198,7 +192,6 @@ struct lis3dh_data {
 #endif
 
 #endif /* CONFIG_LIS3DH_TRIGGER */
-
 };
 
 int lis3dh_sample_fetch(struct device *dev, enum sensor_channel chan);

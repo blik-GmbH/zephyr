@@ -12,12 +12,11 @@
 #include <adc.h>
 
 #if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
-
 static void trigger_handler(struct device *dev, struct sensor_trigger *trigger)
 {
 	ARG_UNUSED(dev);
 	ARG_UNUSED(trigger);
-	printf("You moved it!");
+	SYS_LOG_INF("You moved it!");
  }
 #endif
 
@@ -33,7 +32,7 @@ void main(void)
 
 	dev = device_get_binding(CONFIG_LIS3DH_NAME);
 	if (dev == NULL) {
-		printk("Could not get lis3dh device\n");
+		SYS_LOG_INF("Could not get lis3dh device");
 	}
 #if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 
@@ -55,17 +54,17 @@ void main(void)
 
 	if (sensor_attr_set(dev, SENSOR_CHAN_ACCEL_XYZ,
 	        SENSOR_ATTR_SLOPE_TH, &threshold) < 0) {
-		printk("Could not set threshold\n");
+		SYS_LOG_DBG("Could not set threshold");
 	}
 
 	if (sensor_attr_set(dev, SENSOR_CHAN_ACCEL_XYZ,
 	        SENSOR_ATTR_SLOPE_DUR, &duration) < 0) {
-		printk("Could not set duration.\n");
+		SYS_LOG_DBG("Could not set duration");
 	}
 
 
 	if (sensor_trigger_set(dev, &trig, trigger_handler) < 0) {
-		printk("Could not set trigger\n");
+		SYS_LOG_DBG("Could not set trigger");
 	}
 #endif
 	/* The first measurement isn't ready quite yet */
@@ -75,14 +74,15 @@ void main(void)
 	{
 		rc = sensor_sample_fetch_chan(dev, SENSOR_CHAN_ACCEL_XYZ);
 		if (rc != 0) {
-			printk("sensor_sample_fetch error: %d\n", rc);
+			SYS_LOG_DBG("sensor_sample_fetch error: %d", rc);
 			break;
+
 		}
 
 #if defined(CONFIG_LIS3DH_ENABLE_TEMP)
 		rc = sensor_channel_get(dev, SENSOR_CHAN_TEMP, &temp);
 		if (rc != 0) {
-			printk("sensor_channel_get temp: %d\n", rc);
+			SYS_LOG_DBG("sensor_channel_get temp error: %d", rc);
 			break;
 				}
 #endif
@@ -90,10 +90,10 @@ void main(void)
 #if !defined(CONFIG_LIS3DH_FIFO_ENABLE)
 		rc = sensor_channel_get(dev, SENSOR_CHAN_ACCEL_XYZ, accel);
 		if (rc != 0) {
-			printk("sensor_channel_get accel: %d\n", rc);
+			SYS_LOG_DBG("sensor_channel_get accel error: %d", rc);
 			break;
 		}
-		printk(" AX= %d.%d   AY= %d.%d   AZ= %d.%d\n",
+		SYS_LOG_INF("%d.%d %d.%d %d.%d",
 			accel[0].val1, accel[0].val2,
 			accel[1].val1, accel[1].val2,
 			accel[2].val1, accel[2].val2);
@@ -103,17 +103,13 @@ void main(void)
 		for (int i = 0; i < 32; i++) {
 
 			sensor_channel_get(dev, SENSOR_CHAN_ACCEL_XYZ, accel);
-			printk(" AX= %d.%d   AY= %d.%d   AZ= %d.%d\n",
+			SYS_LOG_INF("%d.%d, %d.%d, %d.%d",
 			accel[0].val1, accel[0].val2,
 			accel[1].val1, accel[1].val2,
 			accel[2].val1, accel[2].val2);
 		}
 #endif
-
-
-		k_sleep(1000);
-
-
+		k_busy_wait(70000);
 
 	}
 }
