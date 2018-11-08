@@ -153,8 +153,6 @@
 #define LIS3DH_REG_ADC_2_MSB		0x0B
 #define LIS3DH_REG_ADC_3_MSB		0x0D
 
-
-
 struct lis3dh_data {
 	struct device *i2c;
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)

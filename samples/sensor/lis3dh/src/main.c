@@ -10,6 +10,8 @@
 #include <device.h>
 #include <stdio.h>
 #include <adc.h>
+#include <logging/sys_log.h>
+
 
 #if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
 static void trigger_handler(struct device *dev, struct sensor_trigger *trigger)
@@ -19,7 +21,6 @@ static void trigger_handler(struct device *dev, struct sensor_trigger *trigger)
 	SYS_LOG_INF("You moved it!");
  }
 #endif
-
 void main(void)
 {
 	struct sensor_value accel[3];
@@ -29,13 +30,11 @@ void main(void)
 	struct device *dev;
 	int rc;
 
-
 	dev = device_get_binding(CONFIG_LIS3DH_NAME);
 	if (dev == NULL) {
 		SYS_LOG_INF("Could not get lis3dh device");
 	}
 #if defined(CONFIG_LIS3DH_TRIGGER) || defined(CONFIG_LIS3DH_TRIGGER_MANUAL)
-
 	/* Take a minimal threshold to trigger easily */
 	struct sensor_value threshold = {
 		.val1 = 1,

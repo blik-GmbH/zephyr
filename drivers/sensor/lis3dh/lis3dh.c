@@ -35,8 +35,9 @@ static int lis3dh_channel_get(struct device *dev,
 			      struct sensor_value *val)
 {
 	struct lis3dh_data *drv_data = dev->driver_data;
+#if defined(CONFIG_LIS3DH_FIFO_ENABLE)
 	u8_t fifo_position;
-
+#endif
 	switch (chan) {
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
 
@@ -48,7 +49,6 @@ static int lis3dh_channel_get(struct device *dev,
 		 * channel get
 		 */
 		if (k_sem_take(&sem_lis3dh_fifo_fetched, K_MSEC(1)) != 0) {
-
 			SYS_LOG_DBG("Can not take fifo_fetched sem.");
 			return -EIO;
 		}
@@ -62,7 +62,6 @@ static int lis3dh_channel_get(struct device *dev,
 		 * channel get
 		 */
 		if (k_sem_take(&sem_lis3dh_fifo_fetched, K_MSEC(1)) != 0) {
-
 			SYS_LOG_DBG("Can not take fifo_fetched sem.");
 			return -EIO;
 		}
@@ -76,7 +75,6 @@ static int lis3dh_channel_get(struct device *dev,
 		 * channel get
 		 */
 		if (k_sem_take(&sem_lis3dh_fifo_fetched, K_MSEC(1)) != 0) {
-
 			SYS_LOG_DBG("Can not take fifo_fetched sem.");
 			return -EIO;
 		}
@@ -203,22 +201,19 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 	/* set to Bypass mode*/
 	rc = i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
 			LIS3DH_REG_FIFO_CTRL,
-			(LIS3DH_FIFO_MODE_MASK & 0U))
+			(LIS3DH_FIFO_MODE_MASK & 0U));
 	if (rc != 0) {
 		SYS_LOG_DBG("Failed to reset FIFO Mode");
 	}
 	/*set back to FIFO mode*/
 	rc = i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
 				LIS3DH_REG_FIFO_CTRL,
-				(LIS3DH_FIFO_MODE_MASK & LIS3DH_FIFO_MODE_BITS))
+				(LIS3DH_FIFO_MODE_MASK
+				& LIS3DH_FIFO_MODE_BITS));
 	if (rc != 0) {
 		SYS_LOG_DBG("Failed to reset FIFO Mode");
 	}
-
 #endif
-
-
-
 	/*set the fifo_fetched semaphore to 32 to indicate that
 	 * a full fifo sample was fetched
 	 */
@@ -233,7 +228,7 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 	 */
 	rc = i2c_burst_read(drv_data->i2c, LIS3DH_I2C_ADDRESS,
 			   (LIS3DH_REG_ACCEL_X_LSB | LIS3DH_AUTOINCREMENT_ADDR),
-			   buf, 6)
+			   buf, 6);
 	if (rc != 0) {
 		SYS_LOG_DBG("Could not read accel axis data");
 		return -EIO;
@@ -340,6 +335,7 @@ int lis3dh_init(struct device *dev)
 			       LIS3DH_LP_EN_BIT | LIS3DH_ODR_BITS);
 	if (rc != 0) {
 		SYS_LOG_DBG("Failed to configure chip.");
+		return -EIO;
 	}
 
 	/* set full scale range */
@@ -385,6 +381,7 @@ int lis3dh_init(struct device *dev)
 				       LIS3DH_FIFO_EN_BIT);
 	if (rc != 0) {
 		SYS_LOG_DBG("Failed to enable FIFO");
+		return -EIO;
 	}
 
 	/*set FIFO MODE and Watermark Level*/
@@ -394,9 +391,8 @@ int lis3dh_init(struct device *dev)
 			| (LIS3DH_WATERMARK_LVL & LIS3DH_WATERMARK_LVL_MASK));
 	if (rc != 0) {
 		SYS_LOG_DBG("Failed to set FIFO Mode");
+		return -EIO;
 	}
-
-
 #endif
 	return 0;
 }
@@ -435,8 +431,6 @@ void lis3dh_fifo_flags_get(struct device *dev)
 	 * dev->fifo_flag_samples
 	 */
 	drv_data->fifo_flag_samples = (reg_val & LIS3DH_FIFO_SAMPLES_MASK);
-	SYS_LOG_DBG("fifo flags: %d\n", reg_val);
-
 }
 #endif
 
