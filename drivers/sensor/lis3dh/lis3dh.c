@@ -152,8 +152,11 @@ int lis3dh_sample_fetch_temp(struct device *dev)
 	s16_t raw = ((buf[1] << 8) | buf [0]);
 
 	/*
-	 * The data is represented as 10bit left-aligned 2's
-	 * complement, where the conversion rate is 1 digit/°C.
+	 * The data is represented as left-aligned 2's
+	 * complement.
+	 * In low power mode the value is 8 bit,
+	 * in normal mode 10 bit.
+	 * The conversion rate is 1 digit/°C.
 	 */
 	drv_data->temp_sample = raw / LIS3DH_TEMP_MAG;
 
