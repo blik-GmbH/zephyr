@@ -16,26 +16,29 @@ static int akita_gen2_pinmux_init(struct device *dev)
 	struct device *portb = device_get_binding(CONFIG_PINMUX_MCUX_PORTB_NAME);
 	struct device *portc = device_get_binding(CONFIG_PINMUX_MCUX_PORTC_NAME);
 
-	/* LLWU */
+	/* LIS3DH INT1: TP 9 */
 	pinmux_pin_set(porta, 16, PORT_PCR_MUX(kPORT_MuxAsGpio));
-
-	/* GPIO */
+	/* LIS3DH INT2: TP 11 */
 	pinmux_pin_set(porta, 17, PORT_PCR_MUX(kPORT_MuxAsGpio));
+	/* TP 6 */
 	pinmux_pin_set(porta, 18, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
 #if CONFIG_ADC_0
-	/* ADC0 SE5 */
+	/* ADC0 SE5: TP 5 */
 	pinmux_pin_set(porta, 19, PORT_PCR_MUX(kPORT_PinDisabledOrAnalog));
 #endif
 
-	/* GPIO */
+	/* LED */
 	pinmux_pin_set(portb, 0, PORT_PCR_MUX(kPORT_MuxAsGpio));
+	/* TP 4 */
 	pinmux_pin_set(portb, 1, PORT_PCR_MUX(kPORT_MuxAsGpio));
+	/* TP 3 */
 	pinmux_pin_set(portb, 2, PORT_PCR_MUX(kPORT_MuxAsGpio));
+	/* TP 2 */
 	pinmux_pin_set(portb, 3, PORT_PCR_MUX(kPORT_MuxAsGpio));
+	/* TP 1 */
 	pinmux_pin_set(portb, 18, PORT_PCR_MUX(kPORT_MuxAsGpio));
-
-	/* GPIO */
+	/* TP 27 */
 	pinmux_pin_set(portc, 1, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
 #if CONFIG_I2C_1
@@ -45,25 +48,26 @@ static int akita_gen2_pinmux_init(struct device *dev)
 	pinmux_pin_set(portc, 3, PORT_PCR_MUX(kPORT_MuxAlt3));
 #endif
 
-	/* GPIO */
+	/* TP 15 */
 	pinmux_pin_set(portc, 4, PORT_PCR_MUX(kPORT_MuxAsGpio));
+	/* TP 12 */
 	pinmux_pin_set(portc, 5, PORT_PCR_MUX(kPORT_MuxAsGpio));
 
 #ifdef CONFIG_UART_MCUX_LPUART_0
-	/* UART0 RX */
+	/* UART0 RX: TP 19 */
 	pinmux_pin_set(portc,  6, PORT_PCR_MUX(kPORT_MuxAlt4));
-	/* UART0 TX */
+	/* UART0 TX: TP 18 */
 	pinmux_pin_set(portc,  7, PORT_PCR_MUX(kPORT_MuxAlt4));
 #endif
 
 #ifdef CONFIG_SPI_0
-	/* SPI0 SCK */
+	/* SPI0 SCK: TP 23 */
 	pinmux_pin_set(portc, 16, PORT_PCR_MUX(kPORT_MuxAlt2));
-	/* SPI0 SOUT */
+	/* SPI0 SOUT: TP 24 */
 	pinmux_pin_set(portc, 17, PORT_PCR_MUX(kPORT_MuxAlt2));
-	/* SPI0 SIN */
+	/* SPI0 SIN: TP 25 */
 	pinmux_pin_set(portc, 18, PORT_PCR_MUX(kPORT_MuxAlt2));
-	/* SPI0 PCS0 */
+	/* SPI0 PCS0: TP 26 */
 	pinmux_pin_set(portc, 19, PORT_PCR_MUX(kPORT_MuxAlt2));
 #endif
 
