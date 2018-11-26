@@ -373,7 +373,8 @@ static int kw41z_cca(struct device *dev)
 
 	kw41z_set_seq_state(KW41Z_STATE_CCA);
 
-	k_sem_take(&kw41z->seq_sync, K_FOREVER);
+	while (k_sem_take(&kw41z->seq_sync, 1) != 0) {
+	}
 
 	return kw41z->seq_retval;
 }
