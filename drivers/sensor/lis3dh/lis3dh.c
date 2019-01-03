@@ -14,7 +14,7 @@
 K_SEM_DEFINE(sem_lis3dh_fifo_ovr, 0, 1);
 K_SEM_DEFINE(sem_lis3dh_fifo_wtm, 0, 1);
 K_SEM_DEFINE(sem_lis3dh_fifo_empty, 0, 1);
-K_SEM_DEFINE(sem_lis3dh_fifo_fetched, 0, 32);
+K_SEM_DEFINE(sem_lis3dh_fifo_fetched, 0, LIS3DH_FIFO_SZ);
 
 static void lis3dh_convert(struct sensor_value *val, s64_t raw_val)
 {
@@ -28,6 +28,7 @@ static void lis3dh_convert(struct sensor_value *val, s64_t raw_val)
 		val->val1 -= 1;
 		val->val2 += 1000000;
 	}
+
 }
 
 static int lis3dh_channel_get(struct device *dev,
@@ -36,7 +37,7 @@ static int lis3dh_channel_get(struct device *dev,
 {
 	struct lis3dh_data *drv_data = dev->driver_data;
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
-	u8_t fifo_position;
+	s16_t fifo_position;
 #endif
 	switch (chan) {
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
@@ -52,8 +53,8 @@ static int lis3dh_channel_get(struct device *dev,
 			SYS_LOG_DBG("Can not take fifo_fetched sem.");
 			return -EIO;
 		}
-		/*save value of semaphore*/
-		fifo_position = k_sem_count_get(&sem_lis3dh_fifo_fetched);
+
+		fifo_position = 32 - k_sem_count_get(&sem_lis3dh_fifo_fetched);
 		lis3dh_convert(val, drv_data->x_sample[fifo_position]);
 		break;
 
@@ -66,7 +67,7 @@ static int lis3dh_channel_get(struct device *dev,
 			return -EIO;
 		}
 		/*save value of semaphore*/
-		fifo_position = k_sem_count_get(&sem_lis3dh_fifo_fetched);
+		fifo_position = 32 - k_sem_count_get(&sem_lis3dh_fifo_fetched);
 		lis3dh_convert(val, drv_data->y_sample[fifo_position]);
 		break;
 
@@ -79,7 +80,7 @@ static int lis3dh_channel_get(struct device *dev,
 			return -EIO;
 		}
 		/*save value of semaphore*/
-		fifo_position = k_sem_count_get(&sem_lis3dh_fifo_fetched);
+		fifo_position = 32 - k_sem_count_get(&sem_lis3dh_fifo_fetched);
 		lis3dh_convert(val, drv_data->z_sample[fifo_position]);
 		break;
 
@@ -92,7 +93,7 @@ static int lis3dh_channel_get(struct device *dev,
 			return -EIO;
 		}
 		/*save value of semaphore*/
-		fifo_position = k_sem_count_get(&sem_lis3dh_fifo_fetched);
+		fifo_position = 32 - k_sem_count_get(&sem_lis3dh_fifo_fetched);
 
 		lis3dh_convert(val, drv_data->x_sample[fifo_position]);
 		lis3dh_convert(val + 1, drv_data->y_sample[fifo_position]);
@@ -156,7 +157,7 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 	struct lis3dh_data *drv_data = dev->driver_data;
 	int rc;
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
-	u8_t fifo_bytes = 192;
+	u8_t fifo_bytes = LIS3DH_FIFO_BYTE_SZ;
 
 	u8_t buf[fifo_bytes];
 	/*check if FIFO is full*/
@@ -165,8 +166,8 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 	/* only read FIFO when the watermark level has been reached.
 	 * Alternatively the overrun flag can be checked.
 	 */
-	if (k_sem_take(&sem_lis3dh_fifo_ovr, K_NO_WAIT) != 0) {
-		SYS_LOG_DBG(
+	if (k_sem_take(&sem_lis3dh_fifo_wtm, K_NO_WAIT) != 0) {
+		SYS_LOG_WRN(
 		"Tried to read FIFO that is not full.");
 		return -EIO;
 	}
@@ -178,13 +179,14 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 	rc = i2c_burst_read(drv_data->i2c, LIS3DH_I2C_ADDRESS,
 			   (LIS3DH_REG_ACCEL_X_LSB | LIS3DH_AUTOINCREMENT_ADDR),
 			   buf, fifo_bytes);
+
 	if (rc != 0) {
-		SYS_LOG_DBG("Could not read accel axis data");
+		SYS_LOG_ERR("Could not read accel axis data");
 		return -EIO;
 	}
 
 	/*Write the 192 byte long buffer to 32* 2 byte array*/
-	for (u16_t i = 0; i < 32; i++) {
+	for (u16_t i = 0; i < LIS3DH_FIFO_SZ; i++) {
 		u16_t k = 6*i;
 
 		drv_data->x_sample[i] = (buf[k+1] << 8) | buf[k];
@@ -203,7 +205,7 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 			LIS3DH_REG_FIFO_CTRL,
 			(LIS3DH_FIFO_MODE_MASK & 0U));
 	if (rc != 0) {
-		SYS_LOG_DBG("Failed to reset FIFO Mode");
+		SYS_LOG_WRN("Failed to reset FIFO Mode");
 	}
 	/*set back to FIFO mode*/
 	rc = i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
@@ -211,13 +213,13 @@ int lis3dh_sample_fetch_accel(struct device *dev)
 				(LIS3DH_FIFO_MODE_MASK
 				& LIS3DH_FIFO_MODE_BITS));
 	if (rc != 0) {
-		SYS_LOG_DBG("Failed to reset FIFO Mode");
+		SYS_LOG_WRN("Failed to reset FIFO Mode");
 	}
 #endif
 	/*set the fifo_fetched semaphore to 32 to indicate that
 	 * a full fifo sample was fetched
 	 */
-	k_sem_init(&sem_lis3dh_fifo_fetched, 32, 32);
+	k_sem_init(&sem_lis3dh_fifo_fetched, LIS3DH_FIFO_SZ, LIS3DH_FIFO_SZ);
 
 #else
 	u8_t buf[6];

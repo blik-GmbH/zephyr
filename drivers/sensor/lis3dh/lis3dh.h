@@ -145,6 +145,8 @@
 
 #define LIS3DH_BUF_SZ			7
 #define LIS3DH_DATA_OFS			0
+#define LIS3DH_FIFO_SZ			32
+#define LIS3DH_FIFO_BYTE_SZ		192
 
 #define LIS3DH_REG_ADC_1_LSB		0x08
 #define LIS3DH_REG_ADC_2_LSB		0x0A
@@ -156,9 +158,9 @@
 struct lis3dh_data {
 	struct device *i2c;
 #if defined(CONFIG_LIS3DH_FIFO_ENABLE)
-	s16_t x_sample[32];
-	s16_t y_sample[32];
-	s16_t z_sample[32];
+	s16_t x_sample[LIS3DH_FIFO_SZ];
+	s16_t y_sample[LIS3DH_FIFO_SZ];
+	s16_t z_sample[LIS3DH_FIFO_SZ];
 	u8_t fifo_flag_samples;
 #else
 	s16_t x_sample;
