@@ -193,7 +193,8 @@ int lis3dh_init(struct device *dev)
 
 	/* set full scale range */
 	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
-			       LIS3DH_REG_CTRL4, LIS3DH_FS_BITS) < 0) {
+			       LIS3DH_REG_CTRL4,
+			       LIS3DH_FS_BITS | LIS3DH_ST_BITS) < 0) {
 		SYS_LOG_DBG("Failed to set full scale range.");
 		return -EIO;
 	}
@@ -202,7 +203,8 @@ int lis3dh_init(struct device *dev)
 	/* enable block data update (BDU) to use the auxiliary ADC */
 	if (i2c_reg_write_byte(drv_data->i2c, LIS3DH_I2C_ADDRESS,
 			       LIS3DH_REG_CTRL4,
-			       LIS3DH_BDU_MASK | LIS3DH_FS_BITS) < 0) {
+			       LIS3DH_BDU_MASK | LIS3DH_FS_BITS |
+			       LIS3DH_ST_BITS) < 0) {
 		SYS_LOG_DBG("Failed to set BDU-bit.");
 		return -EIO;
 	}

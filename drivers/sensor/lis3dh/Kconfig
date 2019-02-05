@@ -219,3 +219,24 @@ config LIS3DH_ODR_9_LOW
 	depends on LIS3DH_POWER_MODE_LOW
 
 endchoice
+
+choice
+	prompt "Self-test mode"
+	depends on LIS3DH
+	default LIS3DH_SELF_TEST_DIS
+	help
+	  Set the self-test mode to disabled, positive or negative
+
+config LIS3DH_SELF_TEST_DIS
+	bool
+	prompt "Disabled"
+
+config LIS3DH_SELF_TEST_POS
+	bool
+	prompt "Positive"
+
+config LIS3DH_SELF_TEST_NEG
+	bool
+	prompt "Negative"
+
+endchoice
